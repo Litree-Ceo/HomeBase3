@@ -1,0 +1,9 @@
+# Azure Static Web Apps Configuration
+app_location: "/frontend"
+api_location: "/backend"
+output_location: "dist"
+
+# Authentication and routing
+routes:
+  - route: "/api/*"
+    allowedRoles: ["authenticated"]

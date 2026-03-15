@@ -1,0 +1,48 @@
+{
+    // Editor settings
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit",
+        "source.organizeImports": "explicit"
+    },
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 4,
+
+    // Files
+    "files.exclude": {
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/.azure": true
+    },
+    "files.associations": {
+        "*.json": "jsonc"
+    },
+
+    // OpenAPI / Swagger
+    "openapi.preview": {
+        "previewPanel": true
+    },
+
+    // Docker
+    "docker.dockerPath": "docker",
+    "docker.dockerComposePath": "docker-compose",
+
+    // Terminal
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+
+    // JSON validation
+    "json.schemas": [
+        {
+            "fileMatch": ["openapi.json"],
+            "url": "./node_modules/@apidevtools/swagger-parser/schema/openapi-schema.json"
+        }
+    ],
+
+    // Workspace-specific settings
+    "workbench.colorTheme": "Default Dark Modern",
+    "workbench.startupEditor": "welcomePage",
+
+    // Auto-run Docker Compose task on workspace open
+    "task.autoDetect": "on"
+}
+

@@ -1,0 +1,30 @@
+{
+  "recommendations": [
+    // Docker support
+    "ms-azuretools.vscode-docker",
+
+    // API / OpenAPI
+    "redhat.vscode-yaml",
+    "42crunch.vscode-openapi",
+
+    // Prettier - Code formatting
+    "esbenp.prettier-vscode",
+
+    // ESLint - Linting
+    "dbaeumer.vscode-eslint",
+
+    // Git
+    "eamodio.gitlens",
+    "github.copilot",
+
+    // Theme
+    "ahmadawais.shades-of-purple",
+
+    // Azure
+    "ms-vscode.azure-account",
+    "ms-azuretools.vscode-azureresourcefunctions",
+
+    // REST Client
+    "humao.rest-client"
+  ]
+}

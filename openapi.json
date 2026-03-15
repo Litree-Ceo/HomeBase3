@@ -1,0 +1,154 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "LiTLabS OS AI API",
+    "description": "Gemini AI Proxy Server for Metaverse Design Generation",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://litlabs-os-api.azure-api.net",
+      "description": "Azure API Management"
+    },
+    {
+      "url": "http://localhost:3001",
+      "description": "Local Development"
+    }
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Health Check",
+        "description": "Returns the health status of the API",
+        "operationId": "healthCheck",
+        "responses": {
+          "200": {
+            "description": "API is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/generate-styles": {
+      "post": {
+        "summary": "Generate Styles",
+        "description": "Generate creative Metaverse design directions based on a prompt",
+        "operationId": "generateStyles",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["prompt"],
+                "properties": {
+                  "prompt": {
+                    "type": "string",
+                    "description": "The design prompt for style generation"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully generated styles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "styles": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of 3 generated style names"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - prompt is required"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/generate-artifact": {
+      "post": {
+        "summary": "Generate Artifact",
+        "description": "Generate a Metaverse UI widget based on prompt and style instruction",
+        "operationId": "generateArtifact",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["prompt", "styleInstruction"],
+                "properties": {
+                  "prompt": {
+                    "type": "string",
+                    "description": "The design prompt for artifact generation"
+                  },
+                  "styleInstruction": {
+                    "type": "string",
+                    "description": "The style direction for the artifact"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully generated artifact",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "html": {
+                      "type": "string",
+                      "description": "Generated HTML/CSS artifact"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - prompt and styleInstruction are required"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    }
+  }
+}

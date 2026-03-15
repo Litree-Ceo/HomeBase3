@@ -1,0 +1,77 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "docker-build",
+      "type": "shell",
+      "command": "docker build -t homebase3-api ./backend",
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "docker-up",
+      "type": "shell",
+      "command": "docker compose up -d",
+      "group": "none",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "runOptions": {
+        "runOn": "default"
+      }
+    },
+    {
+      "label": "docker-down",
+      "type": "shell",
+      "command": "docker compose down",
+      "group": "none",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "docker-logs",
+      "type": "shell",
+      "command": "docker compose logs -f",
+      "group": "none",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "docker-rebuild",
+      "type": "shell",
+      "command": "docker compose up -d --build",
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "openapi-validate",
+      "type": "shell",
+      "command": "npx @apidevtools/swagger-cli validate openapi.json",
+      "group": "none",
+      "problemMatcher": []
+    },
+    {
+      "label": "openapi-generate",
+      "type": "shell",
+      "command": "npx openapi-generator-cli generate -i openapi.json -g typescript-axios -o src/api",
+      "group": "none",
+      "problemMatcher": []
+    }
+  ]
+}

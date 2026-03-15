@@ -1,0 +1,45 @@
+  {
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Docker: API Debug",
+      "type": "docker",
+      "request": "launch",
+      "preLaunchTask": "docker-build"
+      // ...existing code...
+    },
+    {
+      "name": "Docker: Attach to API",
+      "type": "docker",
+      "request": "attach",
+      // ...existing code...
+      "platform": "netCore"
+    },
+    {
+      "name": "Current NPM Script",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "script"],
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Chrome: Launch",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/src"
+    },
+    {
+      "name": "Debug: Current TS File",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "node",
+      "args": ["${file}"],
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}
+
