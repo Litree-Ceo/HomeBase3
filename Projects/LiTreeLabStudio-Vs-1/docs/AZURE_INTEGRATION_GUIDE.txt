@@ -1,0 +1,71 @@
+# Add these imports to the top of app.py:
+# from azure_health import register_health_routes, azure_openai, ApplicationInsights, log_request_metrics
+
+# Add this line after initializing Flask app (after app = Flask(__name__)):
+# register_health_routes(app)
+
+# ==================== UPDATE app.py ROUTE ====================
+# Add this to your /api/assistant/chat route to use Azure OpenAI:
+
+"""
+Updated assistant chat endpoint with Azure OpenAI integration:
+
+@app.route('/api/assistant/chat', methods=['POST'])
+@login_required
+@log_request_metrics
+def assistant_chat():
+    data = request.json or {}
+    message = data.get('message', '').strip()
+    context = data.get('context', {})
+    
+    if not message:
+        return jsonify({'error': 'Message required'}), 400
+    
+    # Try Azure OpenAI first
+    response = None
+    if azure_openai.enabled:
+        response = azure_openai.generate_response(message, context)
+        if response:
+            ApplicationInsights.log_event(
+                'assistant_response',
+                {'provider': 'azure_openai', 'page': context.get('page', 'unknown')}
+            )
+    
+    # Fallback to original response generation
+    if not response:
+        response = generate_assistant_response(message, context, current_user)
+        ApplicationInsights.log_event(
+            'assistant_response',
+            {'provider': 'fallback', 'page': context.get('page', 'unknown')}
+        )
+    
+    # Save to database
+    conn = Database.get_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO assistant_conversations (user_id, message, response, context)
+        VALUES (?, ?, ?, ?)
+    ''', (current_user.id, message, response, json.dumps(context)))
+    conn.commit()
+    conn.close()
+    
+    mood = determine_assistant_mood(response)
+    
+    return jsonify({
+        'response': response,
+        'mood': mood,
+        'suggestions': get_assistant_suggestions(context, current_user),
+        'provider': 'azure_openai' if azure_openai.enabled else 'fallback'
+    })
+"""
+
+# ==================== GUNICORN STARTUP ====================
+# Create startup.txt with this content:
+
+"""
+prod: gunicorn --workers 2 --worker-class eventlet -b 0.0.0.0:5000 app:app
+dev: python app.py
+"""
+
+# Run production with:
+# gunicorn --workers 2 --worker-class eventlet -b 0.0.0.0:5000 app:app

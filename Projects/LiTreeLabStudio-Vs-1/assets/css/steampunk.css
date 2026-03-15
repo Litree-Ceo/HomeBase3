@@ -1,0 +1,115 @@
+:root {
+  --brass: #b5a642;
+  --copper: #b87333;
+  --bronze: #cd7f32;
+  --gold: #ffd700;
+  --leather: #3d2b1f;
+  --parchment: #fcf5e5;
+  --amber: #ffbf00;
+  --dark-wood: #1a0f0a;
+  --bg-color: #0d0907;
+  --rivet-color: rgba(184, 115, 51, 0.4);
+}
+
+@font-face {
+  font-family: 'Steampunk';
+  src: url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Special+Elite&display=swap');
+}
+
+body {
+  background-color: var(--bg-color);
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(255, 191, 0, 0.05) 0%, transparent 70%),
+    url('https://www.transparenttextures.com/patterns/dark-leather.png');
+  color: var(--parchment);
+  font-family: 'Special Elite', cursive;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* Mechanical Gear Background Animation */
+.gear-bg {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  z-index: -1;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.gear {
+  position: absolute;
+  fill: var(--copper);
+  animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Steampunk Panels & Cards */
+.sp-panel {
+  background: var(--leather);
+  border: 4px double var(--brass);
+  border-radius: 5px;
+  position: relative;
+  box-shadow: 
+    inset 0 0 20px rgba(0,0,0,0.8),
+    0 10px 30px rgba(0,0,0,0.5);
+}
+
+.sp-panel::before {
+  content: '';
+  position: absolute;
+  top: -5px; left: -5px; right: -5px; bottom: -5px;
+  border: 1px solid var(--copper);
+  pointer-events: none;
+}
+
+/* Rivet Decoration */
+.rivet {
+  width: 8px; height: 8px;
+  background: radial-gradient(circle at 30% 30%, var(--bronze), #000);
+  border-radius: 50%;
+  position: absolute;
+  box-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Steampunk Buttons */
+.sp-btn {
+  background: linear-gradient(to bottom, var(--bronze), var(--dark-wood));
+  border: 2px solid var(--brass);
+  color: var(--gold);
+  padding: 10px 20px;
+  font-family: 'Special Elite', cursive;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 4px 0 #000;
+  text-shadow: 1px 1px 2px #000;
+}
+
+.sp-btn:hover {
+  filter: brightness(1.2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #000;
+}
+
+.sp-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #000;
+}
+
+/* Glowing Amber Text */
+.amber-glow {
+  color: var(--amber);
+  text-shadow: 0 0 10px rgba(255, 191, 0, 0.5);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 12px; background: var(--dark-wood); }
+::-webkit-scrollbar-thumb { 
+  background: var(--copper); 
+  border: 3px solid var(--dark-wood); 
+  border-radius: 10px; 
+}

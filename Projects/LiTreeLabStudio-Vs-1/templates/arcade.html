@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Arcade - LiTree Social{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+  <div style="text-align: center; margin-bottom: 40px;">
+    <h1 style="font-size: 2.5rem; margin-bottom: 15px;">🎮 LiTree Arcade</h1>
+    <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
+      Play classic games legally in your browser. All games here are shareware, homebrew, or open source.
+    </p>
+    <div style="background: rgba(255, 193, 7, 0.1); border: 1px solid #ffc107; border-radius: 12px; padding: 15px; margin-top: 20px; max-width: 700px; margin-left: auto; margin-right: auto;">
+      <p style="color: #ffc107; font-size: 0.95rem;">
+        ⚠️ <strong>Legal Notice:</strong> We only host/share games with proper distribution rights. 
+        No copyrighted ROMs. Support developers by buying games on GOG, Steam, or official stores!
+      </p>
+    </div>
+  </div>
+
+  <!-- Game Categories -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px;">
+    
+    <!-- DOS Games -->
+    <div style="background: var(--bg-secondary); border-radius: var(--border-radius); overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 20px; border-bottom: 1px solid var(--border-color);">
+        <h2 style="display: flex; align-items: center; gap: 10px;">
+          <span>💾</span> DOS Classics (Shareware)
+        </h2>
+      </div>
+      <div style="padding: 20px;">
+        <div class="game-list">
+          <a href="https://dos.zone/player/?bundleUrl=https%3A%2F%2Fcdn.dos.zone%2Fcustom%2Fdos%2Fdoom.jsdos" 
+             target="_blank" class="game-item" 
+             style="display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--bg-tertiary); border-radius: 12px; margin-bottom: 12px; text-decoration: none; color: inherit; transition: all 0.3s;">
+            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #8B0000, #DC143C); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">👹</div>
+            <div style="flex: 1;">
+              <h4 style="margin-bottom: 5px;">DOOM (Shareware)</h4>
+              <p style="font-size: 0.85rem; color: var(--text-muted);">The legendary FPS - Episode 1 (Free)</p>
+              <span style="font-size: 0.75rem; color: #00ff88;">✓ Legal - Shareware</span>
+            </div>
+            <span style="font-size: 1.5rem;">▶️</span>
+          </a>
+
+          <a href="https://dos.zone/player/?bundleUrl=https%3A%2F%2Fcdn.dos.zone%2Fcustom%2Fdos%2Fwolf3d.jsdos" 
+             target="_blank" class="game-item"
+             style="display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--bg-tertiary); border-radius: 12px; margin-bottom: 12px; text-decoration: none; color: inherit; transition: all 0.3s;">
+            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #4a4a4a, #808080); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🐺</div>
+            <div style="flex: 1;">
+              <h4 style="margin-bottom: 5px;">Wolfenstein 3D</h4>
+              <p style="font-size: 0.85rem; color: var(--text-muted);">The original FPS (Shareware)</p>
+              <span style="font-size: 0.75rem; color: #00ff88;">✓ Legal - Shareware</span>
+            </div>
+            <span style="font-size: 1.5rem;">▶️</span>
+          </a>
+
+          <a href="https://dos.zone/player/?bundleUrl=https%3A%2F%2Fcdn.dos.zone%2Foriginal%2F2X%2F4%2F48d7a6c804067d1b7fb44a13c45dbae410a2f154.jsdos" 
+             target="_blank" class="game-item"
+             style="display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--bg-tertiary); border-radius: 12px; text-decoration: none; color: inherit; transition: all 0.3s;">
+            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #2F4F4F, #008B8B); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">⚔️</div>
+            <div style="flex: 1;">
+              <h4 style="margin-bottom: 5px;">Duke Nukem 3D</h4>
+              <p style="font-size: 0.85rem; color: var(--text-muted);">Shareware version - Episode 1</p>
+              <span style="font-size: 0.75rem; color: #00ff88;">✓ Legal - Shareware</span>
+            </div>
+            <span style="font-size: 1.5rem;">▶️</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Browser Games -->
+    <div style="background: var(--bg-secondary); border-radius: var(--border-radius); overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 20px; border-bottom: 1px solid var(--border-color);">
+        <h2 style="display: flex; align-items: center; gap: 10px;">
+          <span>🌐</span> Browser Games (HTML5)
+        </h2>
+      </div>
+      <div style="padding: 20px;">
+        <a href="https://krunker.io/" target="_blank" class="game-item"
+           style="display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--bg-tertiary); border-radius: 12px; margin-bottom: 12px; text-decoration: none; color: inherit; transition: all 0.3s;">
+          <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #FF6B6B, #4ECDC4); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🔫</div>
+          <div style="flex: 1;">
+            <h4 style="margin-bottom: 5px;">Krunker.io</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Free multiplayer FPS</p>
+            <span style="font-size: 0.75rem; color: #00ff88;">✓ Free-to-Play</span>
+          </div>
+          <span style="font-size: 1.5rem;">▶️</span>
+        </a>
+
+        <a href="https://diep.io/" target="_blank" class="game-item"
+           style="display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--bg-tertiary); border-radius: 12px; text-decoration: none; color: inherit; transition: all 0.3s;">
+          <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🔷</div>
+          <div style="flex: 1;">
+            <h4 style="margin-bottom: 5px;">Diep.io</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Tank battle arena</p>
+            <span style="font-size: 0.75rem; color: #00ff88;">✓ Free-to-Play</span>
+          </div>
+          <span style="font-size: 1.5rem;">▶️</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Homebrew & Indie -->
+    <div style="background: var(--bg-secondary); border-radius: var(--border-radius); overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 20px; border-bottom: 1px solid var(--border-color);">
+        <h2 style="display: flex; align-items: center; gap: 10px;">
+          <span>🏠</span> Homebrew & Indie
+        </h2>
+      </div>
+      <div style="padding: 20px;">
+        <a href="https://itch.io/games/tag-homebrew" target="_blank" class="game-item"
+           style="display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--bg-tertiary); border-radius: 12px; margin-bottom: 12px; text-decoration: none; color: inherit; transition: all 0.3s;">
+          <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #ff9a9e, #fecfef); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🎨</div>
+          <div style="flex: 1;">
+            <h4 style="margin-bottom: 5px;">Itch.io Homebrew</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Fan-made games for retro systems</p>
+            <span style="font-size: 0.75rem; color: #00ff88;">✓ Legal - Homebrew</span>
+          </div>
+          <span style="font-size: 1.5rem;">↗️</span>
+        </a>
+
+        <a href="https://www.newgrounds.com/games" target="_blank" class="game-item"
+           style="display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--bg-tertiary); border-radius: 12px; text-decoration: none; color: inherit; transition: all 0.3s;">
+          <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #f093fb, #f5576c); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">⭐</div>
+          <div style="flex: 1;">
+            <h4 style="margin-bottom: 5px;">Newgrounds Games</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Indie game showcase</p>
+            <span style="font-size: 0.75rem; color: #00ff88;">✓ Legal - Original Content</span>
+          </div>
+          <span style="font-size: 1.5rem;">↗️</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- External Archives -->
+    <div style="background: var(--bg-secondary); border-radius: var(--border-radius); overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 20px; border-bottom: 1px solid var(--border-color);">
+        <h2 style="display: flex; align-items: center; gap: 10px;">
+          <span>📚</span> Internet Archive
+        </h2>
+      </div>
+      <div style="padding: 20px;">
+        <a href="https://archive.org/details/softwarelibrary_msdos_games" target="_blank" class="game-item"
+           style="display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--bg-tertiary); border-radius: 12px; margin-bottom: 12px; text-decoration: none; color: inherit; transition: all 0.3s;">
+          <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #4facfe, #00f2fe); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">💿</div>
+          <div style="flex: 1;">
+            <h4 style="margin-bottom: 5px;">MS-DOS Game Library</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Archive.org's legal preservation</p>
+            <span style="font-size: 0.75rem; color: #00ff88;">✓ Library of Congress exemption</span>
+          </div>
+          <span style="font-size: 1.5rem;">↗️</span>
+        </a>
+
+        <div style="background: rgba(255, 193, 7, 0.1); border: 1px solid #ffc107; border-radius: 8px; padding: 12px; margin-top: 10px;">
+          <p style="font-size: 0.85rem; color: #ffc107;">
+            <strong>Note:</strong> Internet Archive has DMCA exemptions for preservation. 
+            However, you should still only link to abandonware or games you own.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Treasure Mountain Section -->
+  <div style="margin-top: 40px; background: var(--bg-secondary); border-radius: var(--border-radius); padding: 30px;">
+    <h2 style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+      <span>⛰️</span> About Treasure Mountain
+    </h2>
+    <p style="color: var(--text-muted); margin-bottom: 15px;">
+      Treasure Mountain is a 1990 educational game by The Learning Company. It is <strong>copyrighted software</strong> 
+      and cannot be legally hosted on your site without permission.
+    </p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-top: 20px;">
+      <div style="background: var(--bg-tertiary); padding: 20px; border-radius: 12px;">
+        <h4 style="margin-bottom: 10px;">✅ Legal Ways to Play:</h4>
+        <ul style="color: var(--text-muted); padding-left: 20px; line-height: 1.8;">
+          <li>Buy on <a href="https://www.gog.com/" target="_blank" style="color: var(--primary);">GOG.com</a> (if available)</li>
+          <li>Check <a href="https://archive.org/" target="_blank" style="color: var(--primary);">Archive.org</a> (preservation access)</li>
+          <li>Find original CD on eBay</li>
+          <li>Use DOSBox with your purchased copy</li>
+        </ul>
+      </div>
+      
+      <div style="background: var(--bg-tertiary); padding: 20px; border-radius: 12px;">
+        <h4 style="margin-bottom: 10px;">🎮 Similar Legal Alternatives:</h4>
+        <ul style="color: var(--text-muted); padding-left: 20px; line-height: 1.8;">
+          <li><strong>GCompris</strong> - Free educational suite</li>
+          <li><strong>Tux Paint</strong> - Free drawing for kids</li>
+          <li><strong>SuperTux</strong> - Free platformer</li>
+          <li><strong>FreedroidRPG</strong> - Free RPG</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Community Gaming -->
+  <div style="margin-top: 40px; text-align: center;">
+    <h2 style="margin-bottom: 20px;">🎮 Play With Friends</h2>
+    <p style="color: var(--text-muted); margin-bottom: 25px;">
+      Share your high scores and challenge friends on LiTree Social!
+    </p>
+    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+      <button class="post-submit-btn" onclick="shareToFeed()">
+        📱 Share Arcade to Feed
+      </button>
+      <button class="post-action-btn" onclick="askAssistant('How do I add games to my site legally?')">
+        🤖 Ask LitBit
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .game-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .game-item:hover .play-icon {
+    transform: scale(1.2);
+  }
+</style>
+
+<script>
+  function shareToFeed() {
+    const content = "🎮 Check out the LiTree Arcade! Playing some classic DOS games. Who's joining me? #RetroGaming #LiTreeArcade";
+    
+    fetch('/api/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content })
+    })
+    .then(() => {
+      showToast('Shared to your feed!');
+    })
+    .catch(() => {
+      showToast('Failed to share');
+    });
+  }
+</script>
+{% endblock %}

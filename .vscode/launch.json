@@ -1,45 +1,50 @@
-  {
+{
   "version": "0.2.0",
   "configurations": [
+    {
+        "name": "Backend: FastAPI",
+        "type": "debugpy",
+        "request": "launch",
+        "module": "uvicorn",
+        "args": [
+            "backend.main:app",
+            "--reload",
+            "--host", "0.0.0.0",
+            "--port", "8000"
+        ],
+        "jinja": true,
+        "justMyCode": true,
+        "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "name": "Frontend: Astro",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "cwd": "${workspaceFolder}/frontend"
+    },
     {
       "name": "Docker: API Debug",
       "type": "docker",
       "request": "launch",
-      "preLaunchTask": "docker-build"
-      // ...existing code...
-    },
-    {
-      "name": "Docker: Attach to API",
-      "type": "docker",
-      "request": "attach",
-      // ...existing code...
-      "platform": "netCore"
-    },
-    {
-      "name": "Current NPM Script",
-      "type": "node",
-      "request": "launch",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "script"],
-      "console": "integratedTerminal",
-      "skipFiles": ["<node_internals>/**"]
+      "preLaunchTask": "docker-build",
+      "platform": "python",
+      "python": {
+          "pathMappings": [
+              {
+                  "localRoot": "${workspaceFolder}/backend",
+                  "remoteRoot": "/app"
+              }
+          ],
+          "projectType": "fastapi"
+      }
     },
     {
       "name": "Chrome: Launch",
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:3000",
-      "webRoot": "${workspaceFolder}/src"
-    },
-    {
-      "name": "Debug: Current TS File",
-      "type": "node",
-      "request": "launch",
-      "runtimeExecutable": "node",
-      "args": ["${file}"],
-      "console": "integratedTerminal",
-      "skipFiles": ["<node_internals>/**"]
+      "webRoot": "${workspaceFolder}/frontend/src"
     }
   ]
 }
-

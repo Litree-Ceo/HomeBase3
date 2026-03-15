@@ -1,48 +1,111 @@
 {
-    // Editor settings
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-        "source.fixAll": "explicit",
-        "source.organizeImports": "explicit"
-    },
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.tabSize": 4,
+  // Editor settings
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.tabSize": 4,
 
-    // Files
-    "files.exclude": {
-        "**/node_modules": true,
-        "**/dist": true,
-        "**/.azure": true
-    },
-    "files.associations": {
-        "*.json": "jsonc"
-    },
+  // File Exclusions (Keep sidebar clean)
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.astro": true,
+    "**/build": true,
+    "**/out": true,
+    "**/.azure": true,
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/.env": false, // Keep .env visible for editing
+    "**/.env.*.local": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/*/**": true,
+    "**/dist/*/**": true,
+    "**/.git/*/**": true,
+    "**/.astro/*/**": true,
+    "**/build/*/**": true,
+    "**/out/*/**": true,
+    "**/__pycache__/*/**": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
+    "**/.astro": true,
+    "**/build": true,
+    "**/out": true,
+    "**/__pycache__": true
+  },
+  "files.associations": {
+    "*.json": "jsonc",
+    "*.env*": "env"
+  },
 
-    // OpenAPI / Swagger
-    "openapi.preview": {
-        "previewPanel": true
-    },
+  // Python Configuration
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoImportCompletions": true,
+  "python.languageServer": "Pylance",
+  "python.formatting.provider": "none", // Using black-formatter extension
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true
+  },
 
-    // Docker
-    "docker.dockerPath": "docker",
-    "docker.dockerComposePath": "docker-compose",
+  // Astro Configuration
+  "[astro]": {
+    "editor.defaultFormatter": "astro-build.astro-vscode",
+    "editor.formatOnSave": true
+  },
 
-    // Terminal
-    "terminal.integrated.defaultProfile.windows": "PowerShell",
+  // OpenAPI / Swagger
+  "openapi.preview": {
+    "previewPanel": true
+  },
 
-    // JSON validation
-    "json.schemas": [
-        {
-            "fileMatch": ["openapi.json"],
-            "url": "./node_modules/@apidevtools/swagger-parser/schema/openapi-schema.json"
-        }
-    ],
+  // Docker - optimized for lighter resource usage
+  "docker.dockerPath": "docker",
+  "docker.dockerComposePath": "docker-compose",
+  "docker.dockerDaemonAvailabilityTimeout": 30,
 
-    // Workspace-specific settings
-    "workbench.colorTheme": "Default Dark Modern",
-    "workbench.startupEditor": "welcomePage",
+  // Terminal
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "args": ["-NoExit", "-Command", "cd ${workspaceFolder}"]
+    }
+  },
 
-    // Auto-run Docker Compose task on workspace open
-    "task.autoDetect": "on"
+  // JSON validation
+  "json.schemas": [
+    {
+      "fileMatch": ["openapi.json"],
+      "url": "./node_modules/@apidevtools/swagger-parser/schema/openapi-schema.json"
+    }
+  ],
+
+  // Workspace-specific settings
+  "workbench.colorTheme": "Default Dark Modern",
+  "workbench.startupEditor": "none",
+
+  // Auto-run Docker Compose task on workspace open
+  "task.autoDetect": "on",
+
+  // GitHub Copilot
+  "github.copilot.enable": {
+    "*": true,
+    "yaml": false,
+    "json": false,
+    "markdown": false
+  },
+  "github.copilot.advanced": {
+    "inlineSuggestEnable": true,
+    "autocompleteEnable": true
+  },
+  "containers.containerCommand": "docker"
 }
-

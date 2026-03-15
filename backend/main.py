@@ -29,32 +29,50 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Get API keys
+# Get API keys from environment
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-# Try providers in order of preference
+# Use AI_PROVIDER env var or auto-detect
+AI_PROVIDER = os.getenv("AI_PROVIDER", "auto").lower()
+
+# Try providers in order of preference based on AI_PROVIDER or availability
 PROVIDER = None
 API_KEY = None
 BASE_URL = None
 MODEL = None
 
-# Check DeepSeek first (usually has free credits)
-if DEEPSEEK_API_KEY and DEEPSEEK_API_KEY not in ["your-deepseek-api-key-here", "invalid", ""]:
+if AI_PROVIDER == "openai" or (AI_PROVIDER == "auto" and OPENAI_API_KEY and OPENAI_API_KEY not in ["your-openai-api-key-here", "invalid", ""]):
+    PROVIDER = "openai"
+    API_KEY = OPENAI_API_KEY
+    BASE_URL = "https://api.openai.com/v1"
+    MODEL = "gpt-4o-mini"
+elif AI_PROVIDER == "anthropic" or (AI_PROVIDER == "auto" and ANTHROPIC_API_KEY and ANTHROPIC_API_KEY not in ["your-anthropic-api-key-here", "invalid", ""]):
+    PROVIDER = "anthropic"
+    API_KEY = ANTHROPIC_API_KEY
+    BASE_URL = "https://api.anthropic.com"
+    MODEL = "claude-3-haiku-20240307"
+elif AI_PROVIDER == "google" or (AI_PROVIDER == "auto" and GOOGLE_API_KEY and GOOGLE_API_KEY not in ["your-google-api-key-here", "invalid", ""]):
+    PROVIDER = "google"
+    API_KEY = GOOGLE_API_KEY
+    BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
+    MODEL = "gemini-1.5-flash"
+elif AI_PROVIDER == "deepseek" or (AI_PROVIDER == "auto" and DEEPSEEK_API_KEY and DEEPSEEK_API_KEY not in ["your-deepseek-api-key-here", "invalid", ""]):
     PROVIDER = "deepseek"
     API_KEY = DEEPSEEK_API_KEY
     BASE_URL = "https://api.deepseek.com/v1"
     MODEL = "deepseek-chat"
-
-# Fallback to OpenRouter
-elif OPENROUTER_API_KEY and OPENROUTER_API_KEY not in ["your-openrouter-api-key-here", "invalid", ""]:
+elif AI_PROVIDER == "openrouter" or (AI_PROVIDER == "auto" and OPENROUTER_API_KEY and OPENROUTER_API_KEY not in ["your-openrouter-api-key-here", "invalid", ""]):
     PROVIDER = "openrouter"
     API_KEY = OPENROUTER_API_KEY
     BASE_URL = "https://openrouter.ai/api/v1"
     MODEL = "openai/gpt-3.5-turbo"
 
 if not PROVIDER:
-    raise ValueError("No valid API key found. Set DEEPSEEK_API_KEY or OPENROUTER_API_KEY in .env")
+    raise ValueError("No valid API key found. Set one of: OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_API_KEY, DEEPSEEK_API_KEY, or OPENROUTER_API_KEY in .env")
 
 print(f"Using AI Provider: {PROVIDER}")
 
@@ -80,34 +98,81 @@ class ArtifactResponse(BaseModel):
 
 async def call_ai(prompt: str, system_prompt: str, max_tokens: int = 2000) -> str:
     """Make API call to AI provider"""
-    headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 
-    if PROVIDER == "deepseek":
-        headers["Content-Type"] = "application/json"
-    elif PROVIDER == "openrouter":
-        headers["HTTP-Referer"] = "https://homebase3.app"
-        headers["X-Title"] = "HomeBase3"
+    if PROVIDER == "anthropic":
+        # Anthropic uses a different API format
+        headers = {
+            "x-api-key": API_KEY,
+            "Content-Type": "application/json",
+            "anthropic-version": "2023-06-01"
+        }
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                f"{BASE_URL}/messages",
+                headers=headers,
+                json={
+                    "model": MODEL,
+                    "max_tokens": max_tokens,
+                    "messages": [
+                        {"role": "user", "content": prompt}
+                    ],
+                    "system": system_prompt
+                }
+            )
+            if response.status_code != 200:
+                raise Exception(f"API error: {response.text}")
+            data = response.json()
+            return data["content"][0]["text"]
 
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        response = await client.post(
-            f"{BASE_URL}/chat/completions",
-            headers=headers,
-            json={
-                "model": MODEL,
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": prompt}
-                ],
-                "temperature": 0.8,
-                "max_tokens": max_tokens
-            }
-        )
+    elif PROVIDER == "google":
+        # Google Gemini API
+        headers = {"Content-Type": "application/json"}
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                f"{BASE_URL}/models/{MODEL}:generateContent?key={API_KEY}",
+                headers=headers,
+                json={
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "systemInstruction": {"parts": [{"text": system_prompt}]},
+                    "generationConfig": {
+                        "temperature": 0.8,
+                        "maxOutputTokens": max_tokens
+                    }
+                }
+            )
+            if response.status_code != 200:
+                raise Exception(f"API error: {response.text}")
+            data = response.json()
+            return data["candidates"][0]["content"]["parts"][0]["text"]
 
-        if response.status_code != 200:
-            raise Exception(f"API error: {response.text}")
+    else:
+        # OpenAI, DeepSeek, OpenRouter (OpenAI-compatible)
+        headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 
-        data = response.json()
-        return data["choices"][0]["message"]["content"]
+        if PROVIDER == "openrouter":
+            headers["HTTP-Referer"] = "https://homebase3.app"
+            headers["X-Title"] = "HomeBase3"
+
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                f"{BASE_URL}/chat/completions",
+                headers=headers,
+                json={
+                    "model": MODEL,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "temperature": 0.8,
+                    "max_tokens": max_tokens
+                }
+            )
+
+            if response.status_code != 200:
+                raise Exception(f"API error: {response.text}")
+
+            data = response.json()
+            return data["choices"][0]["message"]["content"]
 
 @app.get("/api/health", response_model=HealthResponse)
 async def health_check():

@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Assistant Settings - LiTree Social{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+  <h1 style="font-size: 1.8rem; margin-bottom: 30px;">🤖 LitBit Assistant Settings</h1>
+  
+  <!-- Avatar Preview -->
+  <div style="background: var(--bg-secondary); border-radius: var(--border-radius); padding: 30px; text-align: center; margin-bottom: 30px;">
+    <div style="position: relative; display: inline-block;">
+      <div style="width: 150px; height: 150px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 5rem;">
+        🤖
+      </div>
+      <span style="position: absolute; bottom: 20px; right: 0; width: 20px; height: 20px; background: var(--success); border-radius: 50%; border: 3px solid var(--bg-secondary);"></span>
+    </div>
+    <h2 style="margin-bottom: 5px;">LitBit</h2>
+    <p style="color: var(--text-muted);">Your Personal Guide</p>
+  </div>
+  
+  <!-- Style Selection -->
+  <div style="background: var(--bg-secondary); border-radius: var(--border-radius); padding: 25px; margin-bottom: 20px;">
+    <h3 style="margin-bottom: 20px;">🎨 Avatar Style</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
+      <button class="style-option active" data-style="pixar" onclick="setAssistantStyle('pixar')" style="padding: 20px; border: 2px solid var(--primary); border-radius: 15px; background: var(--bg-tertiary); color: white; cursor: pointer; text-align: center;">
+        <span style="font-size: 2.5rem; display: block; margin-bottom: 10px;">🎬</span>
+        <span style="font-weight: 600;">Pixar</span>
+      </button>
+      <button class="style-option" data-style="cyberpunk" onclick="setAssistantStyle('cyberpunk')" style="padding: 20px; border: 2px solid transparent; border-radius: 15px; background: var(--bg-tertiary); color: white; cursor: pointer; text-align: center;">
+        <span style="font-size: 2.5rem; display: block; margin-bottom: 10px;">🌃</span>
+        <span style="font-weight: 600;">Cyberpunk</span>
+      </button>
+      <button class="style-option" data-style="steampunk" onclick="setAssistantStyle('steampunk')" style="padding: 20px; border: 2px solid transparent; border-radius: 15px; background: var(--bg-tertiary); color: white; cursor: pointer; text-align: center;">
+        <span style="font-size: 2.5rem; display: block; margin-bottom: 10px;">⚙️</span>
+        <span style="font-weight: 600;">Steampunk</span>
+      </button>
+      <button class="style-option" data-style="anime" onclick="setAssistantStyle('anime')" style="padding: 20px; border: 2px solid transparent; border-radius: 15px; background: var(--bg-tertiary); color: white; cursor: pointer; text-align: center;">
+        <span style="font-size: 2.5rem; display: block; margin-bottom: 10px;">🎌</span>
+        <span style="font-weight: 600;">Anime</span>
+      </button>
+    </div>
+    <p style="color: var(--text-muted); margin-top: 15px; font-size: 0.9rem;">
+      💡 Upload custom avatar images to the /assets/avatars/ folder with naming: avatar_{style}_{mood}.png
+    </p>
+  </div>
+  
+  <!-- Voice Settings -->
+  <div style="background: var(--bg-secondary); border-radius: var(--border-radius); padding: 25px; margin-bottom: 20px;">
+    <h3 style="margin-bottom: 20px;">🔊 Voice & Audio</h3>
+    
+    <div class="setting-row" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border-color);">
+      <div>
+        <span style="font-weight: 600; display: block;">Text-to-Speech</span>
+        <span style="color: var(--text-muted); font-size: 0.9rem;">LitBit speaks responses aloud</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="ttsToggle" checked onchange="updateSetting('tts', this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    
+    <div class="setting-row" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
+      <div>
+        <span style="font-weight: 600; display: block;">Speech Recognition</span>
+        <span style="color: var(--text-muted); font-size: 0.9rem;">Use voice commands with LitBit</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="sttToggle" onchange="updateSetting('stt', this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+  
+  <!-- Behavior Settings -->
+  <div style="background: var(--bg-secondary); border-radius: var(--border-radius); padding: 25px; margin-bottom: 20px;">
+    <h3 style="margin-bottom: 20px;">⚙️ Behavior</h3>
+    
+    <div class="setting-row" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border-color);">
+      <div>
+        <span style="font-weight: 600; display: block;">Proactive Help</span>
+        <span style="color: var(--text-muted); font-size: 0.9rem;">LitBit offers tips based on what you're doing</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="proactiveToggle" checked onchange="updateSetting('proactive', this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    
+    <div class="setting-row" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border-color);">
+      <div>
+        <span style="font-weight: 600; display: block;">Sound Effects</span>
+        <span style="color: var(--text-muted); font-size: 0.9rem;">Play sounds when LitBit appears</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="sfxToggle" checked onchange="updateSetting('sfx', this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    
+    <div class="setting-row" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
+      <div>
+        <span style="font-weight: 600; display: block;">Animations</span>
+        <span style="color: var(--text-muted); font-size: 0.9rem;">Smooth transitions and expressions</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="animToggle" checked onchange="updateSetting('animations', this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+  
+  <!-- Privacy -->
+  <div style="background: var(--bg-secondary); border-radius: var(--border-radius); padding: 25px; margin-bottom: 20px;">
+    <h3 style="margin-bottom: 20px;">🔒 Privacy</h3>
+    
+    <div class="setting-row" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
+      <div>
+        <span style="font-weight: 600; display: block;">Save Conversations</span>
+        <span style="color: var(--text-muted); font-size: 0.9rem;">Store chat history with LitBit</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="saveChatToggle" checked onchange="updateSetting('save_chats', this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+  
+  <!-- Actions -->
+  <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+    <button class="post-submit-btn" onclick="testAssistant()">
+      🧪 Test Assistant
+    </button>
+    <button class="post-action-btn" onclick="clearHistory()">
+      🗑️ Clear Chat History
+    </button>
+    <button class="post-action-btn" onclick="askAssistant('How can you help me on LiTree Social?')">
+      🤖 Ask LitBit About Features
+    </button>
+  </div>
+</div>
+
+<style>
+  .toggle-switch {
+    position: relative;
+    width: 50px;
+    height: 28px;
+    cursor: pointer;
+  }
+  
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 28px;
+    transition: 0.3s;
+  }
+  
+  .toggle-slider::after {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: 0.3s;
+  }
+  
+  .toggle-switch input:checked + .toggle-slider {
+    background: var(--primary);
+  }
+  
+  .toggle-switch input:checked + .toggle-slider::after {
+    left: 24px;
+  }
+  
+  .style-option:hover {
+    border-color: var(--primary) !important;
+  }
+  
+  .style-option.active {
+    border-color: var(--primary) !important;
+    background: rgba(0, 212, 255, 0.1) !important;
+  }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Load saved settings
+  document.addEventListener('DOMContentLoaded', () => {
+    const settings = JSON.parse(localStorage.getItem('litbit_settings') || '{}');
+    
+    if (settings.style) {
+      setAssistantStyle(settings.style);
+    }
+    
+    document.getElementById('ttsToggle').checked = settings.tts !== false;
+    document.getElementById('sttToggle').checked = settings.stt === true;
+    document.getElementById('proactiveToggle').checked = settings.proactive !== false;
+    document.getElementById('sfxToggle').checked = settings.sfx !== false;
+    document.getElementById('animToggle').checked = settings.animations !== false;
+    document.getElementById('saveChatToggle').checked = settings.save_chats !== false;
+  });
+  
+  function setAssistantStyle(style) {
+    // Update UI
+    document.querySelectorAll('.style-option').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.style === style);
+    });
+    
+    // Save to localStorage
+    const settings = JSON.parse(localStorage.getItem('litbit_settings') || '{}');
+    settings.style = style;
+    localStorage.setItem('litbit_settings', JSON.stringify(settings));
+    
+    showToast(`LitBit style changed to ${style}!`);
+  }
+  
+  function updateSetting(key, value) {
+    const settings = JSON.parse(localStorage.getItem('litbit_settings') || '{}');
+    settings[key] = value;
+    localStorage.setItem('litbit_settings', JSON.stringify(settings));
+    
+    showToast('Setting saved');
+  }
+  
+  function testAssistant() {
+    // Open assistant and trigger a greeting
+    if (typeof toggleAssistant === 'function') {
+      toggleAssistant();
+    }
+    askAssistant('Say hello and tell me what you can do!');
+  }
+  
+  function clearHistory() {
+    if (confirm('Are you sure you want to clear all chat history with LitBit?')) {
+      fetch('/api/assistant/clear', { method: 'POST' })
+        .then(() => {
+          showToast('Chat history cleared');
+        })
+        .catch(() => {
+          showToast('History cleared (local)');
+        });
+    }
+  }
+</script>
+{% endblock %}

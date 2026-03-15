@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - LiTree Social{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h1 style="font-size: 1.5rem;">Notifications</h1>
+    <button class="post-action-btn" onclick="markAllRead()">Mark all as read</button>
+  </div>
+  
+  <div id="notificationsList" style="background: var(--bg-secondary); border-radius: var(--border-radius); overflow: hidden;">
+    <div class="loading" style="padding: 40px; text-align: center;">Loading notifications...</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    loadNotifications();
+    markAllReadAPI(); // Mark as read when viewing
+  });
+  
+  async function loadNotifications() {
+    try {
+      const response = await fetch('/api/notifications');
+      const data = await response.json();
+      
+      const container = document.getElementById('notificationsList');
+      
+      if (data.notifications.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 60px 40px;">
+            <p style="font-size: 4rem; margin-bottom: 20px;">🔔</p>
+            <h3>No notifications yet</h3>
+            <p style="color: var(--text-muted); margin-top: 10px;">
+              When someone likes or comments on your posts, you'll see it here.
+            </p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = data.notifications.map(n => `
+        <div class="notification-item ${n.is_read ? '' : 'unread'}" 
+             style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; border-bottom: 1px solid var(--border-color); ${n.is_read ? '' : 'background: rgba(0, 212, 255, 0.05);'}">
+          <img src="${n.actor.avatar_url}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">
+          <div style="flex: 1;">
+            <p>${n.message}</p>
+            <span style="font-size: 0.85rem; color: var(--text-muted);">${formatTimeAgo(n.created_at)}</span>
+          </div>
+          ${!n.is_read ? '<span style="width: 10px; height: 10px; background: var(--primary); border-radius: 50%;"></span>' : ''}
+        </div>
+      `).join('');
+      
+    } catch (err) {
+      console.error('Failed to load notifications:', err);
+    }
+  }
+  
+  async function markAllRead() {
+    try {
+      await fetch('/api/notifications/read', { method: 'POST' });
+      loadNotifications();
+      showToast('All notifications marked as read');
+    } catch (err) {
+      console.error('Failed to mark as read:', err);
+    }
+  }
+  
+  async function markAllReadAPI() {
+    try {
+      await fetch('/api/notifications/read', { method: 'POST' });
+    } catch (err) {
+      console.error('Failed to mark as read:', err);
+    }
+  }
+  
+  function formatTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+    
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    return date.toLocaleDateString();
+  }
+</script>
+{% endblock %}

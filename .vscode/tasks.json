@@ -2,75 +2,88 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "docker-build",
-      "type": "shell",
-      "command": "docker build -t homebase3-api ./backend",
-      "group": "build",
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "new"
-      }
-    },
-    {
-      "label": "docker-up",
+      "label": "Docker: Start Containers",
       "type": "shell",
       "command": "docker compose up -d",
-      "group": "none",
-      "problemMatcher": [],
+      "cwd": "${workspaceFolder}",
       "presentation": {
-        "reveal": "always",
-        "panel": "new"
+        "reveal": "silent",
+        "panel": "shared"
       },
       "runOptions": {
-        "runOn": "default"
+        "runOn": "folderOpen"
       }
     },
     {
-      "label": "docker-down",
+      "label": "Backend: Install Dependencies",
+      "type": "shell",
+      "command": "python -m pip install -r backend/requirements.txt",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Backend: Run FastAPI",
+      "type": "shell",
+      "command": "python -m uvicorn backend.main:app --reload",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Frontend: Install Dependencies",
+      "type": "shell",
+      "command": "npm install",
+      "cwd": "${workspaceFolder}/frontend",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Frontend: Run Astro",
+      "type": "shell",
+      "command": "npm run dev",
+      "cwd": "${workspaceFolder}/frontend",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Full Stack: Install All",
+      "dependsOn": [
+        "Backend: Install Dependencies",
+        "Frontend: Install Dependencies"
+      ],
+      "group": "build"
+    },
+    {
+      "label": "Docker: Stop Containers",
       "type": "shell",
       "command": "docker compose down",
-      "group": "none",
-      "problemMatcher": [],
+      "cwd": "${workspaceFolder}",
       "presentation": {
-        "reveal": "always",
-        "panel": "new"
+        "reveal": "silent",
+        "panel": "shared"
       }
     },
     {
-      "label": "docker-logs",
+      "label": "Docker: View Logs",
       "type": "shell",
       "command": "docker compose logs -f",
-      "group": "none",
-      "problemMatcher": [],
+      "cwd": "${workspaceFolder}",
       "presentation": {
         "reveal": "always",
-        "panel": "new"
-      }
-    },
-    {
-      "label": "docker-rebuild",
-      "type": "shell",
-      "command": "docker compose up -d --build",
-      "group": "build",
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "new"
-      }
-    },
-    {
-      "label": "openapi-validate",
-      "type": "shell",
-      "command": "npx @apidevtools/swagger-cli validate openapi.json",
-      "group": "none",
-      "problemMatcher": []
-    },
-    {
-      "label": "openapi-generate",
-      "type": "shell",
-      "command": "npx openapi-generator-cli generate -i openapi.json -g typescript-axios -o src/api",
-      "group": "none",
+        "panel": "shared"
+      },
+      "isBackground": true,
       "problemMatcher": []
     }
   ]

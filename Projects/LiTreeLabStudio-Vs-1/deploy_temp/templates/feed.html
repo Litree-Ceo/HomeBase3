@@ -1,0 +1,558 @@
+{% extends "base.html" %}
+
+{% block title %}Feed - LiTree Social{% endblock %}
+
+{% block content %}
+<!-- Stories -->
+<div class="stories-container">
+  <div class="story add-story" onclick="createStory()">
+    <div class="story-avatar">
+      <img src="{{ current_user.avatar_url }}" alt="Your story">
+    </div>
+    <span class="story-name">Your Story</span>
+  </div>
+  <div class="story" onclick="viewStory('retrored')">
+    <div class="story-avatar unseen">
+      <img src="https://api.dicebear.com/7.x/bottts/svg?seed=RetroRick" alt="RetroRick">
+    </div>
+    <span class="story-name">RetroRick</span>
+  </div>
+  <div class="story" onclick="viewStory('pixelpam')">
+    <div class="story-avatar unseen">
+      <img src="https://api.dicebear.com/7.x/bottts/svg?seed=PixelPam" alt="PixelPam">
+    </div>
+    <span class="story-name">PixelPam</span>
+  </div>
+  <div class="story" onclick="viewStory('arcadealex')">
+    <div class="story-avatar">
+      <img src="https://api.dicebear.com/7.x/bottts/svg?seed=ArcadeAlex" alt="ArcadeAlex">
+    </div>
+    <span class="story-name">ArcadeAlex</span>
+  </div>
+  <div class="story" onclick="viewStory('litbit')">
+    <div class="story-avatar unseen">
+      <img src="/static/default-avatar.png" alt="LitBit">
+    </div>
+    <span class="story-name">LitBit</span>
+  </div>
+</div>
+
+<!-- Create Post -->
+<div class="create-post">
+  <div class="create-post-header">
+    <img src="{{ current_user.avatar_url }}" alt="Your avatar">
+    <textarea class="create-post-input" id="postContent" rows="2" placeholder="What's on your mind, {{ current_user.display_name }}?"></textarea>
+  </div>
+  
+  <!-- Poll Creator (Hidden by default) -->
+  <div id="pollCreator" style="display: none; padding: 15px; background: var(--bg-tertiary); border-radius: 12px; margin: 15px 0;">
+    <input type="text" id="pollQuestion" placeholder="Ask a question..." style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: white; margin-bottom: 10px;">
+    <div id="pollOptions">
+      <input type="text" class="poll-option-input" placeholder="Option 1" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: white; margin-bottom: 8px;">
+      <input type="text" class="poll-option-input" placeholder="Option 2" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: white; margin-bottom: 8px;">
+    </div>
+    <button class="post-action-btn" onclick="addPollOption()" style="margin-top: 5px;">+ Add Option</button>
+  </div>
+  
+  <div id="mediaPreview" style="margin: 15px 0; display: none;"></div>
+  
+  <div class="create-post-actions">
+    <div class="post-actions-left">
+      <button class="post-action-btn" onclick="document.getElementById('mediaUpload').click()">
+        <span>📷</span> Photo/Video
+      </button>
+      <button class="post-action-btn" onclick="togglePoll()">
+        <span>📊</span> Poll
+      </button>
+      <button class="post-action-btn" onclick="askAssistant('How do I create a great post?')">
+        <span>🤖</span> Ask LitBit
+      </button>
+    </div>
+    <input type="file" id="mediaUpload" style="display: none" accept="image/*,video/*" onchange="handleMediaUpload(event)">
+    <button class="post-submit-btn" id="submitPost" onclick="createPost()">Post</button>
+  </div>
+</div>
+
+<!-- Posts Feed -->
+<div id="postsFeed">
+  <div class="loading">Loading posts...</div>
+</div>
+
+<!-- Load More -->
+<div style="text-align: center; padding: 20px;">
+  <button class="post-action-btn" onclick="loadMorePosts()" id="loadMoreBtn">Load More</button>
+</div>
+
+<!-- Story Viewer Modal -->
+<div id="storyModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000;">
+  <div style="position: absolute; top: 20px; right: 20px; z-index: 3001;">
+    <button onclick="closeStory()" style="background: none; border: none; color: white; font-size: 2rem; cursor: pointer;">✕</button>
+  </div>
+  <div style="height: 100%; display: flex; align-items: center; justify-content: center;">
+    <div style="max-width: 500px; width: 90%; text-align: center;">
+      <div id="storyContent" style="background: var(--bg-secondary); border-radius: 20px; padding: 40px; min-height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <!-- Story content loaded here -->
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let currentPage = 1;
+  let isLoading = false;
+  let uploadedMedia = null;
+  let pollMode = false;
+
+  // Load posts on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    loadPosts();
+    
+    // Setup infinite scroll
+    window.addEventListener('scroll', () => {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+        loadMorePosts();
+      }
+    });
+  });
+
+  // Stories
+  const STORIES = {
+    retrored: { user: 'RetroRick', content: '🎮 Just beat DOOM on Nightmare mode! What\'s your hardest gaming achievement?', time: '2m', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=RetroRick' },
+    pixelpam: { user: 'PixelPam', content: '✨ Working on a new pixel art tutorial. Who wants to learn?', time: '15m', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=PixelPam' },
+    arcadealex: { user: 'ArcadeAlex', content: '🏆 New high score in Pac-Man! 245,600 points!', time: '1h', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=ArcadeAlex' },
+    litbit: { user: 'LitBit', content: '🤖 Did you know? The first video game was created in 1958! Tennis for Two on an oscilloscope.', time: '30m', avatar: '/static/default-avatar.png' }
+  };
+
+  function viewStory(storyId) {
+    const story = STORIES[storyId];
+    if (!story) return;
+    
+    document.getElementById('storyContent').innerHTML = `
+      <img src="${story.avatar}" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 20px; border: 4px solid var(--primary);">
+      <h3 style="margin-bottom: 10px;">${story.user}</h3>
+      <p style="font-size: 1.2rem; line-height: 1.6; margin-bottom: 20px;">${story.content}</p>
+      <span style="color: var(--text-muted);">${story.time} ago</span>
+      <div style="margin-top: 30px; display: flex; gap: 10px;">
+        <button class="post-submit-btn" onclick="replyToStory('${story.user}')">Reply</button>
+        <button class="post-action-btn" onclick="closeStory()">Next</button>
+      </div>
+    `;
+    
+    document.getElementById('storyModal').style.display = 'block';
+    
+    // Auto-close after 5 seconds
+    setTimeout(() => {
+      if (document.getElementById('storyModal').style.display === 'block') {
+        closeStory();
+      }
+    }, 5000);
+  }
+
+  function closeStory() {
+    document.getElementById('storyModal').style.display = 'none';
+  }
+
+  function replyToStory(user) {
+    closeStory();
+    document.getElementById('assistantInput').value = `@${user} `;
+    toggleAssistant();
+  }
+
+  function createStory() {
+    showToast('📸 Story creation coming soon! Share your gaming moments!');
+  }
+
+  // Poll Functions
+  function togglePoll() {
+    pollMode = !pollMode;
+    document.getElementById('pollCreator').style.display = pollMode ? 'block' : 'none';
+  }
+
+  function addPollOption() {
+    const container = document.getElementById('pollOptions');
+    const optionNum = container.children.length + 1;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'poll-option-input';
+    input.placeholder = `Option ${optionNum}`;
+    input.style.cssText = 'width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary); color: white; margin-bottom: 8px;';
+    container.appendChild(input);
+  }
+
+  async function loadPosts(page = 1) {
+    if (isLoading) return;
+    isLoading = true;
+    
+    try {
+      const response = await fetch(`/api/posts?page=${page}`);
+      const data = await response.json();
+      
+      const feed = document.getElementById('postsFeed');
+      
+      if (page === 1) {
+        feed.innerHTML = '';
+      }
+      
+      if (data.posts.length === 0 && page === 1) {
+        feed.innerHTML = `
+          <div class="empty" style="padding: 40px; text-align: center;">
+            <p style="font-size: 3rem; margin-bottom: 15px;">🌱</p>
+            <h3>No posts yet</h3>
+            <p style="color: var(--text-muted); margin-top: 10px;">
+              Be the first to share something! Or ask LitBit for ideas.
+            </p>
+            <button class="post-submit-btn" style="margin-top: 20px;" onclick="askAssistant('What should I post?')">
+              Ask LitBit for Ideas
+            </button>
+          </div>
+        `;
+      } else {
+        data.posts.forEach(post => {
+          feed.appendChild(createPostElement(post));
+        });
+      }
+      
+      currentPage = page;
+    } catch (err) {
+      console.error('Failed to load posts:', err);
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  function loadMorePosts() {
+    loadPosts(currentPage + 1);
+  }
+
+  function createPostElement(post) {
+    const div = document.createElement('div');
+    div.className = 'post-card animate-slide-in';
+    div.dataset.postId = post.id;
+    
+    const timeAgo = formatTimeAgo(post.created_at);
+    const likeClass = post.user_liked ? 'liked' : '';
+    const premiumBadge = post.is_premium ? '<span class="premium-badge">⭐ PREMIUM</span>' : '';
+    
+    let mediaHtml = '';
+    if (post.media_url) {
+      if (post.media_type === 'video') {
+        mediaHtml = `<div class="post-media"><video src="${post.media_url}" controls></video></div>`;
+      } else {
+        mediaHtml = `<div class="post-media"><img src="${post.media_url}" alt="Post media"></div>`;
+      }
+    }
+    
+    div.innerHTML = `
+      <div class="post-header">
+        <img src="${post.author.avatar_url}" alt="${post.author.display_name}">
+        <div class="post-author-info">
+          <a href="/profile/${post.author.username}" class="post-author-name">
+            ${post.author.display_name}
+          </a>
+          ${premiumBadge}
+          <div class="post-time">${timeAgo}</div>
+        </div>
+      </div>
+      <div class="post-content">${escapeHtml(post.content)}</div>
+      ${mediaHtml}
+      <div class="post-stats">
+        <span id="likes-${post.id}">${post.likes_count} likes</span>
+        <span>${post.comments_count} comments</span>
+        <span>${Math.floor(Math.random() * 50)} shares</span>
+      </div>
+      
+      <!-- Enhanced Reactions Bar -->
+      <div class="reactions-bar">
+        <div class="reaction-wrapper" style="position: relative; flex: 1;">
+          <button class="post-action ${likeClass}" onclick="toggleLike(${post.id})" id="like-btn-${post.id}">
+            <span>${post.user_liked ? '❤️' : '🤍'}</span> Like
+          </button>
+          <div class="reactions-popup">
+            <span class="reaction-icon" onclick="reactToPost(${post.id}, 'like')">👍</span>
+            <span class="reaction-icon" onclick="reactToPost(${post.id}, 'love')">❤️</span>
+            <span class="reaction-icon" onclick="reactToPost(${post.id}, 'laugh')">😂</span>
+            <span class="reaction-icon" onclick="reactToPost(${post.id}, 'wow')">😮</span>
+            <span class="reaction-icon" onclick="reactToPost(${post.id}, 'sad')">😢</span>
+            <span class="reaction-icon" onclick="reactToPost(${post.id}, 'angry')">😡</span>
+          </div>
+        </div>
+        <button class="post-action" onclick="showComments(${post.id})">
+          <span>💬</span> Comment
+        </button>
+        <button class="post-action" onclick="sharePost(${post.id})">
+          <span>↗️</span> Share
+        </button>
+      </div>
+      <div class="comments-section" id="comments-${post.id}" style="display: none; margin-top: 15px;"></div>
+    `;
+    
+    return div;
+  }
+
+  async function reactToPost(postId, reaction) {
+    // Visual feedback
+    const btn = document.querySelector(`[data-post-id="${postId}"] .post-action`);
+    const reactions = { like: '👍', love: '❤️', laugh: '😂', wow: '😮', sad: '😢', angry: '😡' };
+    btn.innerHTML = `<span>${reactions[reaction]}</span> ${reaction.charAt(0).toUpperCase() + reaction.slice(1)}`;
+    btn.classList.add('active');
+    
+    // Add XP for reacting
+    if (typeof addXP === 'function') {
+      addXP(2);
+    }
+    
+    showToast(`Reacted with ${reactions[reaction]}!`);
+    
+    // Still send like to backend
+    await toggleLike(postId);
+  }
+
+  async function createPost() {
+    const content = document.getElementById('postContent').value.trim();
+    const submitBtn = document.getElementById('submitPost');
+    
+    if (!content && !uploadedMedia && !pollMode) {
+      showToast('Please write something, add media, or create a poll');
+      return;
+    }
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Posting...';
+    
+    try {
+      let postData = {
+        content: content,
+        media_url: uploadedMedia?.url,
+        media_type: uploadedMedia?.type
+      };
+      
+      // If poll mode, include poll data
+      if (pollMode) {
+        const pollQuestion = document.getElementById('pollQuestion').value;
+        const pollOptions = Array.from(document.querySelectorAll('.poll-option-input'))
+          .map(input => input.value)
+          .filter(val => val.trim() !== '');
+        
+        if (pollQuestion && pollOptions.length >= 2) {
+          postData.content = `📊 POLL: ${pollQuestion}\n\n${content}`;
+          postData.is_poll = true;
+          postData.poll_options = pollOptions;
+        }
+      }
+      
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postData)
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        document.getElementById('postContent').value = '';
+        document.getElementById('mediaPreview').style.display = 'none';
+        document.getElementById('mediaPreview').innerHTML = '';
+        uploadedMedia = null;
+        
+        // Reset poll
+        if (pollMode) {
+          togglePoll();
+          document.getElementById('pollQuestion').value = '';
+          document.querySelectorAll('.poll-option-input').forEach((input, i) => {
+            if (i > 1) input.remove();
+            else input.value = '';
+          });
+        }
+        
+        showToast('Post created! +10 XP 🎉');
+        if (typeof addXP === 'function') {
+          addXP(10);
+        }
+        loadPosts(1);
+      } else {
+        showToast(data.error || 'Failed to create post');
+      }
+    } catch (err) {
+      showToast('Network error. Please try again.');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Post';
+    }
+  }
+
+  async function toggleLike(postId) {
+    try {
+      const response = await fetch(`/api/posts/${postId}/like`, {
+        method: 'POST'
+      });
+      
+      const data = await response.json();
+      const postCard = document.querySelector(`[data-post-id="${postId}"]`);
+      const likeBtn = postCard.querySelector('.post-action:first-child');
+      const statsSpan = postCard.querySelector('.post-stats span:first-child');
+      
+      if (data.liked) {
+        likeBtn.classList.add('liked');
+        likeBtn.innerHTML = '<span>❤️</span> Like';
+      } else {
+        likeBtn.classList.remove('liked');
+        likeBtn.innerHTML = '<span>🤍</span> Like';
+      }
+      
+      const currentLikes = parseInt(statsSpan.textContent);
+      statsSpan.textContent = `${data.liked ? currentLikes + 1 : currentLikes - 1} likes`;
+    } catch (err) {
+      console.error('Failed to toggle like:', err);
+    }
+  }
+
+  async function showComments(postId) {
+    const section = document.getElementById(`comments-${postId}`);
+    
+    if (section.style.display === 'block') {
+      section.style.display = 'none';
+      return;
+    }
+    
+    section.style.display = 'block';
+    section.innerHTML = '<div class="loading">Loading comments...</div>';
+    
+    try {
+      const response = await fetch(`/api/posts/${postId}/comments`);
+      const data = await response.json();
+      
+      let commentsHtml = '<div style="border-top: 1px solid var(--border-color); padding-top: 15px;">';
+      
+      commentsHtml += `
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+          <img src="{{ current_user.avatar_url }}" style="width: 32px; height: 32px; border-radius: 50%;">
+          <input type="text" id="comment-input-${postId}" 
+                 style="flex: 1; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 20px; background: var(--bg-tertiary); color: white;"
+                 placeholder="Write a comment..."
+                 onkeypress="if(event.key==='Enter') addComment(${postId})">
+          <button onclick="addComment(${postId})" style="padding: 10px 20px; border: none; border-radius: 20px; background: var(--primary); color: white; cursor: pointer;">Post</button>
+        </div>
+      `;
+      
+      if (data.comments.length === 0) {
+        commentsHtml += '<p style="color: var(--text-muted); text-align: center; padding: 20px;">No comments yet. Be the first!</p>';
+      } else {
+        data.comments.forEach(comment => {
+          const timeAgo = formatTimeAgo(comment.created_at);
+          commentsHtml += `
+            <div style="display: flex; gap: 10px; margin-bottom: 12px; animation: slideInUp 0.3s ease;">
+              <img src="${comment.author.avatar_url}" style="width: 32px; height: 32px; border-radius: 50%;">
+              <div style="flex: 1; background: var(--bg-tertiary); padding: 12px; border-radius: 16px; border-bottom-left-radius: 5px;">
+                <a href="/profile/${comment.author.username}" style="font-weight: 600; color: var(--text-primary); text-decoration: none;">${comment.author.display_name}</a>
+                <p style="margin-top: 4px;">${escapeHtml(comment.content)}</p>
+                <div style="display: flex; gap: 15px; margin-top: 8px; font-size: 0.8rem; color: var(--text-muted);">
+                  <span>${timeAgo}</span>
+                  <span style="cursor: pointer;" onclick="likeComment(${comment.id})">Like</span>
+                  <span style="cursor: pointer;">Reply</span>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+      }
+      
+      commentsHtml += '</div>';
+      section.innerHTML = commentsHtml;
+    } catch (err) {
+      section.innerHTML = '<p style="color: var(--danger); padding: 20px;">Failed to load comments</p>';
+    }
+  }
+
+  async function addComment(postId) {
+    const input = document.getElementById(`comment-input-${postId}`);
+    const content = input.value.trim();
+    
+    if (!content) return;
+    
+    try {
+      const response = await fetch(`/api/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content })
+      });
+      
+      if (response.ok) {
+        showComments(postId);
+        
+        const postCard = document.querySelector(`[data-post-id="${postId}"]`);
+        const statsSpan = postCard.querySelector('.post-stats span:nth-child(2)');
+        const currentComments = parseInt(statsSpan.textContent);
+        statsSpan.textContent = `${currentComments + 1} comments`;
+        
+        showToast('Comment added! +5 XP');
+        if (typeof addXP === 'function') {
+          addXP(5);
+        }
+      }
+    } catch (err) {
+      showToast('Failed to add comment');
+    }
+  }
+
+  function sharePost(postId) {
+    const url = `${window.location.origin}/post/${postId}`;
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('Link copied! +3 XP');
+      if (typeof addXP === 'function') {
+        addXP(3);
+      }
+    });
+  }
+
+  function handleMediaUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const preview = document.getElementById('mediaPreview');
+    const isVideo = file.type.startsWith('video/');
+    
+    const url = URL.createObjectURL(file);
+    preview.innerHTML = isVideo 
+      ? `<video src="${url}" controls style="max-width: 100%; max-height: 300px; border-radius: 10px;"></video>`
+      : `<img src="${url}" style="max-width: 100%; max-height: 300px; border-radius: 10px;">`;
+    preview.style.display = 'block';
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', isVideo ? 'video' : 'avatar');
+    
+    fetch('/api/upload', {
+      method: 'POST',
+      body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        uploadedMedia = {
+          url: data.url,
+          type: isVideo ? 'video' : 'image'
+        };
+      }
+    });
+  }
+
+  function formatTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+    
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    return date.toLocaleDateString();
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+</script>
+{% endblock %}

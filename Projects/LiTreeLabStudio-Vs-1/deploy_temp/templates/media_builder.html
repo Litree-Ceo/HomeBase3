@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Media Builder - LiTree Social{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 1.8rem; margin-bottom: 10px;">🎨 Media Builder</h1>
+    <p style="color: var(--text-muted);">Create stunning content for your posts</p>
+    {% if current_user.tier == 'free' %}
+    <div style="background: rgba(0, 212, 255, 0.1); border: 1px solid var(--primary); border-radius: 12px; padding: 15px; margin-top: 15px;">
+      <p>💡 <strong>Upgrade to Premium</strong> for HD video, advanced filters, and more tools!</p>
+    </div>
+    {% endif %}
+  </div>
+  
+  <!-- Tools Grid -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+    <!-- Image Editor -->
+    <div style="background: var(--bg-secondary); border-radius: var(--border-radius); padding: 25px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 15px;">🖼️</div>
+      <h3 style="margin-bottom: 10px;">Image Editor</h3>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">
+        Crop, resize, and add filters to your photos.
+      </p>
+      <button class="post-action-btn" style="width: 100%;" onclick="openImageEditor()">
+        Open Editor
+      </button>
+    </div>
+    
+    <!-- Video Studio -->
+    <div style="background: var(--bg-secondary); border-radius: var(--border-radius); padding: 25px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 15px;">🎬</div>
+      <h3 style="margin-bottom: 10px;">Video Studio</h3>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">
+        {% if current_user.has_tier('premium') %}
+        Trim, merge, and add effects to videos.
+        {% else %}
+        Basic video trimming. Upgrade for full features.
+        {% endif %}
+      </p>
+      <button class="post-action-btn" style="width: 100%;" onclick="openVideoStudio()">
+        Open Studio
+      </button>
+    </div>
+    
+    <!-- Collage Maker -->
+    <div style="background: var(--bg-secondary); border-radius: var(--border-radius); padding: 25px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 15px;">🎭</div>
+      <h3 style="margin-bottom: 10px;">Collage Maker</h3>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">
+        Combine multiple photos into beautiful collages.
+      </p>
+      <button class="post-action-btn" style="width: 100%;" onclick="openCollageMaker()">
+        Create Collage
+      </button>
+    </div>
+    
+    <!-- Music & Audio -->
+    <div style="background: var(--bg-secondary); border-radius: var(--border-radius); padding: 25px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 15px;">🎵</div>
+      <h3 style="margin-bottom: 10px;">Music & Audio</h3>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">
+        {% if current_user.has_tier('premium') %}
+        Add music, voiceovers, and sound effects.
+        {% else %}
+        Add background music to your posts.
+        {% endif %}
+      </p>
+      <button class="post-action-btn" style="width: 100%;" onclick="openAudioTool()">
+        Add Audio
+      </button>
+    </div>
+    
+    {% if current_user.has_tier('vip') %}
+    <!-- AI Generator (VIP only) -->
+    <div style="background: var(--bg-secondary); border-radius: var(--border-radius); padding: 25px; text-align: center; border: 2px solid #ffd700;">
+      <div style="font-size: 3rem; margin-bottom: 15px;">✨</div>
+      <h3 style="margin-bottom: 10px;">AI Image Generator</h3>
+      <span style="background: linear-gradient(135deg, #ffd700, #ff8c00); color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">VIP EXCLUSIVE</span>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin: 15px 0;">
+        Generate unique images with AI based on your descriptions.
+      </p>
+      <button class="post-submit-btn" style="width: 100%; background: linear-gradient(135deg, #ffd700, #ff8c00); color: black;" onclick="openAIGenerator()">
+        Generate Image
+      </button>
+    </div>
+    {% endif %}
+    
+    <!-- Avatar Studio -->
+    <div style="background: var(--bg-secondary); border-radius: var(--border-radius); padding: 25px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 15px;">🤖</div>
+      <h3 style="margin-bottom: 10px;">Avatar Studio</h3>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">
+        Customize your LitBit assistant appearance.
+      </p>
+      <a href="/assistant-settings" class="post-action-btn" style="width: 100%; display: inline-block; text-decoration: none;">
+        Customize
+      </a>
+    </div>
+  </div>
+  
+  <!-- Recent Creations -->
+  <div style="margin-top: 40px;">
+    <h2 style="margin-bottom: 20px;">Your Media Library</h2>
+    <div style="background: var(--bg-secondary); border-radius: var(--border-radius); padding: 40px; text-align: center;">
+      <p style="font-size: 3rem; margin-bottom: 15px;">📁</p>
+      <h3>No media yet</h3>
+      <p style="color: var(--text-muted); margin-top: 10px;">
+        Your created and uploaded media will appear here.
+      </p>
+      <button class="post-action-btn" style="margin-top: 20px;" onclick="askAssistant('How do I use the Media Builder?')">
+        🤖 Ask LitBit for Help
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function openImageEditor() {
+    {% if current_user.tier == 'free' %}
+    showToast('Basic editor: Crop & Filters available. Upgrade for more!');
+    {% else %}
+    showToast('Opening advanced image editor...');
+    {% endif %}
+  }
+  
+  function openVideoStudio() {
+    {% if current_user.tier == 'free' %}
+    showToast('Video Studio: Basic trimming only. Upgrade to Premium for full features!');
+    {% else %}
+    showToast('Opening Video Studio...');
+    {% endif %}
+  }
+  
+  function openCollageMaker() {
+    showToast('Opening Collage Maker...');
+  }
+  
+  function openAudioTool() {
+    {% if current_user.tier == 'free' %}
+    showToast('Audio: Add background music. Upgrade for voiceovers & effects!');
+    {% else %}
+    showToast('Opening Audio tools...');
+    {% endif %}
+  }
+  
+  function openAIGenerator() {
+    showToast('Opening AI Image Generator...');
+  }
+</script>
+{% endblock %}

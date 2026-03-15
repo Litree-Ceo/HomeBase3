@@ -1,0 +1,12 @@
+{
+  "api_keys": {
+    "openai": "your_openai_key_here",
+    "anthropic": "your_anthropic_key_here",
+    "deepseek": "your_deepseek_key_here",
+    "openrouter": "your_openrouter_key_here"
+  },
+  "playwright": {
+    "enabled": true
+  },
+  "voice_coding": {
+    "enabled": true

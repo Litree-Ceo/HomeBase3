@@ -1,30 +1,35 @@
 {
   "recommendations": [
-    // Docker support
-    "ms-azuretools.vscode-docker",
+    // Python Support
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.black-formatter",
+    "ms-python.pylint",
 
-    // API / OpenAPI
+    // Frontend (Astro/TypeScript/CSS)
+    "astro-build.astro-vscode",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "bradlc.vscode-tailwindcss",
+
+    // Infrastructure & Docker
+    "ms-azuretools.vscode-docker",
+    "ms-azuretools.vscode-bicep",
+    "ms-azuretools.vscode-azurecontainerapps",
     "redhat.vscode-yaml",
     "42crunch.vscode-openapi",
 
-    // Prettier - Code formatting
-    "esbenp.prettier-vscode",
-
-    // ESLint - Linting
-    "dbaeumer.vscode-eslint",
-
-    // Git
+    // Git & Collaboration
     "eamodio.gitlens",
+    "ms-vscode.git",
+
+    // AI Tools
     "github.copilot",
+    "github.copilot-chat",
 
-    // Theme
-    "ahmadawais.shades-of-purple",
-
-    // Azure
-    "ms-vscode.azure-account",
-    "ms-azuretools.vscode-azureresourcefunctions",
-
-    // REST Client
-    "humao.rest-client"
-  ]
+    // Utilities
+    "humao.rest-client",
+    "irongeek.vscode-env"
+  ],
+  "unwantedRecommendations": []
 }

@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}LiTree Social{% endblock %}</title>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/enhanced.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/steampunk.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <nav class="top-bar">
+    <div class="nav-left">
+      <a href="/feed" class="logo">
+        <span class="logo-icon">🌳</span>
+        <span class="logo-text">LiTree</span>
+      </a>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search LiTree...">
+        <div class="search-results" id="searchResults"></div>
+      </div>
+    </div>
+    
+    <div class="nav-center">
+      <a href="/feed" class="nav-tab {% if request.endpoint == 'feed' %}active{% endif %}" title="Feed">
+        <span>🏠</span>
+      </a>
+      <a href="/friends" class="nav-tab {% if request.endpoint == 'friends' %}active{% endif %}" title="Friends">
+        <span>👥</span>
+      </a>
+      <a href="/media-builder" class="nav-tab {% if request.endpoint == 'media_builder' %}active{% endif %}" title="Media Builder">
+        <span>🎨</span>
+      </a>
+      <a href="/arcade" class="nav-tab {% if request.endpoint == 'arcade' %}active{% endif %}" title="Arcade">
+        <span>🎮</span>
+      </a>
+    </div>
+    
+    <div class="nav-right">
+      <button class="icon-btn" id="musicToggle" title="Music Player">
+        <span>🎵</span>
+      </button>
+      <button class="icon-btn" id="assistantToggle" title="Ask LitBit">
+        <span>🤖</span>
+      </button>
+      <a href="/messages" class="icon-btn" title="Messages">
+        <span>💬</span>
+        <span class="badge" id="messageBadge" style="display:none">0</span>
+      </a>
+      <a href="/notifications" class="icon-btn" title="Notifications">
+        <span>🔔</span>
+        <span class="badge" id="notifBadge" style="display:none">0</span>
+      </a>
+      <div class="user-menu">
+        <img src="{{ current_user.avatar_url }}" alt="Avatar" class="nav-avatar">
+        <div class="dropdown">
+          <a href="/profile/{{ current_user.username }}">Profile</a>
+          <a href="/achievements">🏆 Achievements</a>
+          <a href="/assistant-settings">Assistant Settings</a>
+          <hr>
+          <a href="/logout">Logout</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main-layout">
+    <!-- Left Sidebar -->
+    <aside class="sidebar-left">
+      <!-- XP Progress -->
+      <div style="background: var(--bg-secondary); border-radius: var(--border-radius); padding: 15px; margin-bottom: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="font-weight: 700;">Level <span id="userLevel">1</span></span>
+          <span class="level-badge" id="tierBadge">{{ current_user.tier.upper() }}</span>
+        </div>
+        <div class="xp-bar-container">
+          <div class="xp-bar" id="xpBar" style="width: 35%;"></div>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">
+          <span id="currentXP">350</span> / <span id="maxXP">1000</span> XP
+        </p>
+        
+        <!-- Achievements Preview -->
+        <div class="achievements-grid" style="margin-top: 15px;">
+          <div class="achievement unlocked" title="First Post">📝</div>
+          <div class="achievement unlocked" title="Made a Friend">👥</div>
+          <div class="achievement" title="100 Likes">❤️</div>
+          <div class="achievement" title="Arcade Master">🎮</div>
+        </div>
+      </div>
+
+      <a href="/profile/{{ current_user.username }}" class="sidebar-item">
+        <img src="{{ current_user.avatar_url }}" alt="">
+        <span>{{ current_user.display_name }}</span>
+      </a>
+      <a href="/friends" class="sidebar-item">
+        <span class="icon">👥</span>
+        <span>Friends</span>
+      </a>
+      <a href="/messages" class="sidebar-item">
+        <span class="icon">💬</span>
+        <span>Messenger</span>
+      </a>
+      <a href="/notifications" class="sidebar-item">
+        <span class="icon">🔔</span>
+        <span>Notifications</span>
+      </a>
+      <hr>
+      <div class="sidebar-section">
+        <h4>Shortcuts</h4>
+        <a href="/media-builder" class="sidebar-item">
+          <span class="icon">🎨</span>
+          <span>Media Builder</span>
+        </a>
+        <a href="/arcade" class="sidebar-item">
+          <span class="icon">🎮</span>
+          <span>Arcade</span>
+        </a>
+        <a href="/assistant-settings" class="sidebar-item">
+          <span class="icon">🤖</span>
+          <span>LitBit Settings</span>
+        </a>
+      </div>
+      <hr>
+      <div class="sidebar-section">
+        <h4>Your Tier</h4>
+        <div class="tier-badge tier-{{ current_user.tier }}" id="sidebarTierBadge">
+          <span>{{ current_user.tier.upper() }}</span>
+        </div>
+        {% if current_user.tier == 'free' %}
+        <a href="#upgrade" class="upgrade-link" onclick="showUpgradeModal()">Upgrade to Premium</a>
+        {% endif %}
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Right Sidebar -->
+    <aside class="sidebar-right">
+      <!-- Trending -->
+      <div class="trending-sidebar" style="margin-bottom: 20px;">
+        <h4 style="margin-bottom: 15px;">🔥 Trending</h4>
+        <div class="trending-item" onclick="searchTag('RetroGaming')">
+          <span class="trending-rank top">1</span>
+          <div class="trending-info">
+            <span class="trending-tag">#RetroGaming</span>
+            <span class="trending-posts">2.4k posts</span>
+          </div>
+        </div>
+        <div class="trending-item" onclick="searchTag('DOOM')">
+          <span class="trending-rank top">2</span>
+          <div class="trending-info">
+            <span class="trending-tag">#DOOM</span>
+            <span class="trending-posts">1.8k posts</span>
+          </div>
+        </div>
+        <div class="trending-item" onclick="searchTag('PixelArt')">
+          <span class="trending-rank">3</span>
+          <div class="trending-info">
+            <span class="trending-tag">#PixelArt</span>
+            <span class="trending-posts">956 posts</span>
+          </div>
+        </div>
+        <div class="trending-item" onclick="searchTag('Speedrun')">
+          <span class="trending-rank">4</span>
+          <div class="trending-info">
+            <span class="trending-tag">#Speedrun</span>
+            <span class="trending-posts">742 posts</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h4>Sponsored</h4>
+        <div class="sponsored-item">
+          <div class="sponsor-img">🎯</div>
+          <div class="sponsor-info">
+            <span class="sponsor-title">Upgrade to Premium</span>
+            <span class="sponsor-desc">Unlock exclusive features</span>
+          </div>
+        </div>
+      </div>
+      
+      <hr>
+      
+      <div class="sidebar-section">
+        <h4>Online Friends <span id="onlineFriendsCount" style="color: var(--success);">● 3</span></h4>
+        <div id="contactsList">
+          <div class="loading">Loading contacts...</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Theme Toggle -->
+  <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle Theme">
+    <span id="themeIcon">☀️</span>
+  </button>
+
+  <!-- Online Users Counter -->
+  <div class="online-users">
+    <span class="online-dot"></span>
+    <span class="online-count"><span id="onlineCount">12</span> online</span>
+  </div>
+
+  <!-- Music Player (Hidden by default) -->
+  <div class="music-player" id="musicPlayer" style="display: none;">
+    <div class="music-info">
+      <div class="music-cover">🎵</div>
+      <div class="music-details">
+        <span class="music-title">Retro Vibes</span>
+        <span class="music-artist">LiTree Radio</span>
+      </div>
+    </div>
+    <div class="music-controls">
+      <button class="music-btn" onclick="previousTrack()">⏮</button>
+      <button class="music-btn play" onclick="togglePlay()" id="playBtn">▶</button>
+      <button class="music-btn" onclick="nextTrack()">⏭</button>
+    </div>
+    <div class="music-progress">
+      <div class="music-progress-bar" id="musicProgress"></div>
+    </div>
+    <button class="icon-btn" onclick="toggleMusicPlayer()" style="margin-left: 10px;">✕</button>
+  </div>
+
+  <!-- Floating Avatar Assistant -->
+  <div class="avatar-assistant-container" id="assistantContainer">
+    <div class="assistant-chat-panel" id="assistantPanel">
+      <div class="assistant-header">
+        <div class="assistant-info">
+          <div class="assistant-avatar">
+            <img id="assistantAvatarImg" src="/static/default-avatar.png" alt="LitBit">
+            <span class="assistant-status"></span>
+          </div>
+          <div>
+            <span class="assistant-name">LitBit</span>
+            <span class="assistant-desc">Your Guide</span>
+          </div>
+        </div>
+        <button class="close-btn" onclick="toggleAssistant()">×</button>
+      </div>
+      <div class="assistant-messages" id="assistantMessages">
+        <div class="message assistant-message">
+          <span>Hey {{ current_user.display_name }}! I'm LitBit, your personal guide to LiTree Social. How can I help you today?</span>
+        </div>
+      </div>
+      <div class="assistant-suggestions" id="assistantSuggestions">
+        <button onclick="askAssistant('What can I do here?')">What can I do?</button>
+        <button onclick="askAssistant('How do I create a post?')">Create a post</button>
+        {% if current_user.tier == 'free' %}
+        <button onclick="askAssistant('Tell me about Premium')">Premium features</button>
+        {% endif %}
+      </div>
+      <div class="assistant-input">
+        <input type="text" id="assistantInput" placeholder="Ask LitBit anything..." 
+               onkeypress="if(event.key==='Enter') sendAssistantMessage()">
+        <button onclick="sendAssistantMessage()">➤</button>
+      </div>
+    </div>
+    <button class="assistant-fab" id="assistantFab" onclick="toggleAssistant()">
+      <span>🤖</span>
+    </button>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Upgrade Modal -->
+  <div id="upgradeModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center;">
+    <div style="background: var(--bg-secondary); border-radius: 20px; padding: 30px; width: 90%; max-width: 500px; text-align: center;">
+      <h2 style="margin-bottom: 10px;">⭐ Upgrade Your Experience</h2>
+      <p style="color: var(--text-muted); margin-bottom: 25px;">Unlock premium features and support LiTree Social!</p>
+      
+      <div style="display: grid; gap: 15px; margin-bottom: 25px;">
+        <div style="background: var(--bg-tertiary); padding: 20px; border-radius: 12px; border: 2px solid var(--primary);">
+          <h3 style="color: var(--primary);">Premium</h3>
+          <div style="font-size: 2rem; font-weight: 700;">$9.99<span style="font-size: 0.9rem; color: var(--text-muted);">/mo</span></div>
+          <ul style="text-align: left; margin: 15px 0; color: var(--text-muted); font-size: 0.9rem;">
+            <li>✓ HD Video Uploads</li>
+            <li>✓ Advanced Media Builder</li>
+            <li>✓ Custom Themes</li>
+            <li>✓ No Advertisements</li>
+          </ul>
+          <button class="post-submit-btn" style="width: 100%;" onclick="upgradeToPremium()">Upgrade Now</button>
+        </div>
+      </div>
+      
+      <button class="post-action-btn" onclick="closeUpgradeModal()">Maybe Later</button>
+    </div>
+  </div>
+
+  <script>
+    // Global state
+    const currentUser = {
+      id: {{ current_user.id }},
+      username: '{{ current_user.username }}',
+      displayName: '{{ current_user.display_name }}',
+      tier: '{{ current_user.tier }}'
+    };
+    
+    let socket;
+    let assistantOpen = false;
+    let assistantStyle = 'pixar';
+    let assistantMood = 'happy';
+    let xp = 350;
+    let maxXp = 1000;
+    let level = 1;
+    let musicPlaying = false;
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      initSocket();
+      loadNotifications();
+      loadContacts();
+      initSearch();
+      simulateOnlineUsers();
+      updateXPBar();
+      
+      // Load saved theme
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      document.getElementById('themeIcon').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+    });
+    
+    // Theme Toggle
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      document.getElementById('themeIcon').textContent = newTheme === 'dark' ? '☀️' : '🌙';
+      showToast(`Switched to ${newTheme} mode`);
+    }
+    
+    // XP System
+    function updateXPBar() {
+      const percentage = (xp / maxXp) * 100;
+      document.getElementById('xpBar').style.width = percentage + '%';
+      document.getElementById('currentXP').textContent = xp;
+      document.getElementById('maxXP').textContent = maxXp;
+      document.getElementById('userLevel').textContent = level;
+    }
+    
+    function addXP(amount) {
+      xp += amount;
+      if (xp >= maxXp) {
+        xp -= maxXp;
+        level++;
+        maxXp = Math.floor(maxXp * 1.5);
+        showToast(`🎉 Level Up! You're now level ${level}!`);
+        confettiEffect();
+      }
+      updateXPBar();
+    }
+    
+    // Confetti Effect
+    function confettiEffect() {
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.backgroundColor = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'][Math.floor(Math.random() * 5)];
+        confetti.style.animationDelay = Math.random() * 2 + 's';
+        document.body.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 3000);
+      }
+    }
+    
+    // Simulate Online Users
+    function simulateOnlineUsers() {
+      const baseCount = 12;
+      setInterval(() => {
+        const variation = Math.floor(Math.random() * 5) - 2;
+        document.getElementById('onlineCount').textContent = baseCount + variation;
+      }, 5000);
+    }
+    
+    // Music Player
+    function toggleMusicPlayer() {
+      const player = document.getElementById('musicPlayer');
+      player.style.display = player.style.display === 'none' ? 'flex' : 'none';
+    }
+    
+    document.getElementById('musicToggle').addEventListener('click', toggleMusicPlayer);
+    
+    function togglePlay() {
+      musicPlaying = !musicPlaying;
+      document.getElementById('playBtn').textContent = musicPlaying ? '⏸' : '▶';
+      if (musicPlaying) {
+        simulateMusicProgress();
+      }
+    }
+    
+    function simulateMusicProgress() {
+      if (!musicPlaying) return;
+      const progress = document.getElementById('musicProgress');
+      let width = parseFloat(progress.style.width) || 30;
+      width += 0.5;
+      if (width > 100) width = 0;
+      progress.style.width = width + '%';
+      requestAnimationFrame(simulateMusicProgress);
+    }
+    
+    function previousTrack() {
+      showToast('⏮ Previous track');
+    }
+    
+    function nextTrack() {
+      showToast('⏭ Next track');
+    }
+    
+    // Upgrade Modal
+    function showUpgradeModal() {
+      document.getElementById('upgradeModal').style.display = 'flex';
+    }
+    
+    function closeUpgradeModal() {
+      document.getElementById('upgradeModal').style.display = 'none';
+    }
+    
+    function upgradeToPremium() {
+      showToast('Redirecting to payment...');
+      setTimeout(() => {
+        closeUpgradeModal();
+        showToast('Premium upgrade demo - no actual payment processed');
+      }, 1500);
+    }
+    
+    // Search by tag
+    function searchTag(tag) {
+      document.getElementById('searchInput').value = '#' + tag;
+      showToast(`Searching #${tag}...`);
+    }
+    
+    // WebSocket
+    function initSocket() {
+      socket = io();
+      
+      socket.on('connect', () => {
+        console.log('[Socket] Connected');
+        socket.emit('join_feed');
+      });
+      
+      socket.on('new_message', (data) => {
+        showToast(`New message from ${data.sender_name}`);
+        updateMessageBadge(1);
+      });
+      
+      socket.on('notification', (data) => {
+        showToast(data.message);
+        updateNotifBadge(1);
+      });
+    }
+    
+    // Assistant Functions
+    function toggleAssistant() {
+      assistantOpen = !assistantOpen;
+      document.getElementById('assistantPanel').classList.toggle('open', assistantOpen);
+      document.getElementById('assistantFab').style.display = assistantOpen ? 'none' : 'flex';
+      
+      if (assistantOpen) {
+        document.getElementById('assistantInput').focus();
+      }
+    }
+    
+    function askAssistant(message) {
+      document.getElementById('assistantInput').value = message;
+      sendAssistantMessage();
+    }
+    
+    async function sendAssistantMessage() {
+      const input = document.getElementById('assistantInput');
+      const message = input.value.trim();
+      if (!message) return;
+      
+      addAssistantMessage('user', message);
+      input.value = '';
+      setAssistantMood('thinking');
+      
+      const context = {
+        page: '{{ request.endpoint }}',
+        userTier: currentUser.tier,
+        timestamp: new Date().toISOString()
+      };
+      
+      try {
+        const response = await fetch('/api/assistant/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, context })
+        });
+        
+        const data = await response.json();
+        
+        setAssistantMood(data.mood);
+        addAssistantMessage('assistant', data.response);
+        
+        if (data.suggestions) {
+          updateSuggestions(data.suggestions);
+        }
+        
+        // Add XP for using assistant
+        addXP(5);
+      } catch (err) {
+        setAssistantMood('surprised');
+        addAssistantMessage('assistant', 'Oops! I\'m having trouble connecting. Try again?');
+      }
+    }
+    
+    function addAssistantMessage(sender, text) {
+      const container = document.getElementById('assistantMessages');
+      const div = document.createElement('div');
+      div.className = `message ${sender}-message`;
+      div.innerHTML = `<span>${escapeHtml(text)}</span>`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+    
+    function setAssistantMood(mood) {
+      assistantMood = mood;
+      document.getElementById('moodBadge').style.setProperty('--mood-color', 
+        mood === 'happy' ? '#00ff88' : 
+        mood === 'thinking' ? '#ffd700' : 
+        mood === 'surprised' ? '#ff006e' : '#00d4ff'
+      );
+    }
+    
+    function updateSuggestions(suggestions) {
+      const container = document.getElementById('assistantSuggestions');
+      container.innerHTML = suggestions.map(s => 
+        `<button onclick="askAssistant('${escapeHtml(s)}')">${escapeHtml(s)}</button>`
+      ).join('');
+    }
+    
+    // Notifications
+    async function loadNotifications() {
+      try {
+        const response = await fetch('/api/notifications');
+        const data = await response.json();
+        
+        if (data.unread_count > 0) {
+          document.getElementById('notifBadge').textContent = data.unread_count;
+          document.getElementById('notifBadge').style.display = 'flex';
+        }
+      } catch (err) {
+        console.error('Failed to load notifications');
+      }
+    }
+    
+    function updateNotifBadge(count) {
+      const badge = document.getElementById('notifBadge');
+      const current = parseInt(badge.textContent) || 0;
+      badge.textContent = current + count;
+      badge.style.display = 'flex';
+    }
+    
+    function updateMessageBadge(count) {
+      const badge = document.getElementById('messageBadge');
+      const current = parseInt(badge.textContent) || 0;
+      badge.textContent = current + count;
+      badge.style.display = 'flex';
+    }
+    
+    function showToast(message) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      container.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 5000);
+    }
+    
+    // Contacts
+    async function loadContacts() {
+      try {
+        const response = await fetch('/api/users/friends');
+        const data = await response.json();
+        
+        const container = document.getElementById('contactsList');
+        if (data.friends.length === 0) {
+          container.innerHTML = '<div class="empty">No friends yet</div>';
+        } else {
+          container.innerHTML = data.friends.slice(0, 5).map(f => `
+            <a href="/profile/${f.username}" class="contact-item" style="display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; color: var(--text-primary); text-decoration: none;">
+              <div style="position: relative;">
+                <img src="${f.avatar_url}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                <span style="position: absolute; bottom: 0; right: 0; width: 8px; height: 8px; background: var(--success); border-radius: 50%; border: 2px solid var(--bg-secondary);"></span>
+              </div>
+              <span style="font-size: 0.9rem;">${f.display_name}</span>
+            </a>
+          `).join('');
+          
+          document.getElementById('onlineFriendsCount').innerHTML = `● ${Math.min(data.friends.length, 3)}`;
+        }
+      } catch (err) {
+        console.error('Failed to load contacts');
+      }
+    }
+    
+    // Search
+    function initSearch() {
+      const searchInput = document.getElementById('searchInput');
+      const searchResults = document.getElementById('searchResults');
+      let searchTimeout;
+      
+      searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const query = e.target.value.trim();
+        
+        if (query.length < 2) {
+          searchResults.style.display = 'none';
+          return;
+        }
+        
+        searchTimeout = setTimeout(async () => {
+          try {
+            const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            
+            if (data.users.length > 0) {
+              searchResults.innerHTML = data.users.map(u => `
+                <a href="/profile/${u.username}" class="search-result">
+                  <img src="${u.avatar_url}" alt="">
+                  <div>
+                    <span class="name">${u.display_name}</span>
+                    <span class="username">@${u.username}</span>
+                  </div>
+                </a>
+              `).join('');
+              searchResults.style.display = 'block';
+            } else {
+              searchResults.innerHTML = '<div class="no-results">No users found</div>';
+              searchResults.style.display = 'block';
+            }
+          } catch (err) {
+            console.error('Search failed');
+          }
+        }, 300);
+      });
+      
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-box')) {
+          searchResults.style.display = 'none';
+        }
+      });
+    }
+    
+    // Utilities
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // Handle page unload
+    window.addEventListener('beforeunload', () => {
+      if (socket) socket.disconnect();
+    });
+  </script>
+  
+  {% block scripts %}{% endblock %}
+</body>
+</html>

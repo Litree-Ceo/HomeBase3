@@ -5,6 +5,7 @@
 
 # IDE
 .idea/
+.vscode/
 
 # OS
 .DS_Store
@@ -18,10 +19,18 @@ __pycache__/
 venv/
 .venv/
 
-# Node
+# Node & Build
 node_modules/
 dist/
+.astro/
+build/
+out/
 
 # Docker
 *.log
+
+# Nested Git
+**/frontend/.git
+**/.git
+!.git/
 

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - LiTree Social</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #14141f 50%, #1e1e2e 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 460px;
+    }
+
+    .auth-card {
+      background: rgba(20, 20, 31, 0.95);
+      border-radius: 24px;
+      padding: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+
+    .auth-header h1 {
+      font-size: 1.8rem;
+      background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .auth-header p {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 14px 18px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.3s;
+    }
+
+    .form-group input:focus {
+      border-color: #00d4ff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .form-group input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .tier-section {
+      margin-bottom: 20px;
+    }
+
+    .tier-section label {
+      display: block;
+      margin-bottom: 12px;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .tier-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    .tier-option {
+      padding: 15px 10px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .tier-option:hover {
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .tier-option input {
+      position: absolute;
+      opacity: 0;
+    }
+
+    .tier-option.selected {
+      border-color: #00d4ff;
+      background: rgba(0, 212, 255, 0.1);
+    }
+
+    .tier-option .tier-name {
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .tier-option .tier-price {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .tier-option .tier-features {
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 6px;
+    }
+
+    .tier-free .tier-name { color: rgba(255, 255, 255, 0.7); }
+    .tier-premium .tier-name { color: #00d4ff; }
+    .tier-vip .tier-name { color: #ffd700; }
+
+    .auth-btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+
+    .auth-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4);
+    }
+
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      margin: 25px 0;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .auth-divider span {
+      padding: 0 15px;
+      font-size: 0.9rem;
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 25px;
+    }
+
+    .auth-footer p {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .auth-footer a {
+      color: #00d4ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .auth-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .alert {
+      padding: 14px 18px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+    }
+
+    .alert-error {
+      background: rgba(255, 68, 68, 0.1);
+      border: 1px solid rgba(255, 68, 68, 0.3);
+      color: #ff4444;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="logo">🌳</div>
+        <h1>Create Account</h1>
+        <p>Join LiTree Social today</p>
+      </div>
+
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-error">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" action="/register" id="registerForm">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" placeholder="Choose a username" required>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="your@email.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Create a password" required minlength="6">
+        </div>
+
+        <div class="tier-section">
+          <label>Choose Your Plan</label>
+          <div class="tier-options">
+            <label class="tier-option tier-free selected" onclick="selectTier('free')">
+              <input type="radio" name="tier" value="free" checked>
+              <span class="tier-name">FREE</span>
+              <span class="tier-price">$0/month</span>
+              <span class="tier-features">Basic features</span>
+            </label>
+            <label class="tier-option tier-premium" onclick="selectTier('premium')">
+              <input type="radio" name="tier" value="premium">
+              <span class="tier-name">PREMIUM</span>
+              <span class="tier-price">$9.99/month</span>
+              <span class="tier-features">HD video & more</span>
+            </label>
+            <label class="tier-option tier-vip" onclick="selectTier('vip')">
+              <input type="radio" name="tier" value="vip">
+              <span class="tier-name">VIP</span>
+              <span class="tier-price">$19.99/month</span>
+              <span class="tier-features">Everything +</span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="auth-btn">Create Account</button>
+      </form>
+
+      <div class="auth-divider">
+        <span>OR</span>
+      </div>
+
+      <div class="auth-footer">
+        <p>Already have an account? <a href="/login">Sign in</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function selectTier(tier) {
+      document.querySelectorAll('.tier-option').forEach(opt => {
+        opt.classList.remove('selected');
+      });
+      document.querySelector(`.tier-${tier}`).classList.add('selected');
+    }
+  </script>
+</body>
+</html>
