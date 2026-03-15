@@ -1,16 +1,15 @@
 """
 HomeBase3 - AI-powered Metaverse Design Generation API
-FastAPI backend with multi-provider AI support (Google, OpenAI, Anthropic)
+FastAPI backend with Anthropic Claude integration using httpx
 """
 import os
 import json
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
-from typing import List
+from pydantic import BaseModel
 import httpx
 
 # Load environment variables
@@ -19,9 +18,7 @@ load_dotenv()
 app = FastAPI(
     title="LiTLabS OS AI API",
     description="AI Proxy Server for Metaverse Design Generation",
-    version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
+    version="1.0.0"
 )
 
 # CORS middleware
@@ -33,254 +30,185 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# AI Provider Configuration
-AI_PROVIDER = os.getenv("AI_PROVIDER", "google").lower()
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# Get API key - try Anthropic first, fallback to OpenAI
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# API URLs
-GOOGLE_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
-OPENAI_BASE_URL = "https://api.openai.com/v1"
+# Determine which provider to use
+ai_provider = os.getenv("AI_PROVIDER", "anthropic").lower()
+
+if ai_provider == "anthropic" and ANTHROPIC_API_KEY:
+    USE_ANTHROPIC = True
+elif OPENAI_API_KEY:
+    USE_ANTHROPIC = False
+    ai_provider = "openai"
+else:
+    raise ValueError("No valid API key found. Set ANTHROPIC_API_KEY or OPENAI_API_KEY")
+
 ANTHROPIC_BASE_URL = "https://api.anthropic.com/v1"
+OPENAI_BASE_URL = "https://api.openai.com/v1"
 
 # Request models
 class StyleRequest(BaseModel):
-    prompt: str = Field(..., description="The design prompt for style generation")
+    prompt: str
 
 class ArtifactRequest(BaseModel):
-    prompt: str = Field(..., description="The design prompt for artifact generation")
-    styleInstruction: str = Field(..., description="The style direction for the artifact")
+    prompt: str
+    styleInstruction: str
 
+# Response models
 class HealthResponse(BaseModel):
     status: str
     timestamp: datetime
     provider: str
 
 class StylesResponse(BaseModel):
-    styles: List[str]
+    styles: list[str]
 
 class ArtifactResponse(BaseModel):
     html: str
-    status: str = "success"
+    status: str
 
+async def call_anthropic(prompt: str, system_prompt: str, max_tokens: int = 2000) -> str:
+    """Make API call to Anthropic Claude using httpx"""
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        response = await client.post(
+            f"{ANTHROPIC_BASE_URL}/messages",
+            headers={
+                "x-api-key": ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "claude-3-haiku-20240307",
+                "max_tokens": max_tokens,
+                "system": system_prompt,
+                "messages": [{"role": "user", "content": prompt}]
+            }
+        )
 
-def get_provider_config():
-    """Get the active AI provider configuration."""
-    if AI_PROVIDER == "google":
-        if not GOOGLE_API_KEY:
-            raise ValueError("GOOGLE_API_KEY not found in environment")
-        return {
-            "name": "google",
-            "api_key": GOOGLE_API_KEY,
-            "model": "gemini-1.5-flash"
-        }
-    elif AI_PROVIDER == "openai":
-        if not OPENAI_API_KEY:
-            raise ValueError("OPENAI_API_KEY not found in environment")
-        return {
-            "name": "openai",
-            "api_key": OPENAI_API_KEY,
-            "model": "gpt-4"
-        }
-    elif AI_PROVIDER == "anthropic":
-        if not ANTHROPIC_API_KEY:
-            raise ValueError("ANTHROPIC_API_KEY not found in environment")
-        return {
-            "name": "anthropic",
-            "api_key": ANTHROPIC_API_KEY,
-            "model": "claude-3-sonnet-20240229"
-        }
-    else:
-        raise ValueError(f"Unknown AI provider: {AI_PROVIDER}")
+        if response.status_code != 200:
+            raise Exception(f"Anthropic API error: {response.text}")
 
-
-async def generate_with_google(prompt: str, system_prompt: str = "") -> str:
-    """Generate content using Google Gemini API."""
-    config = get_provider_config()
-    api_key = config["api_key"]
-    model = config["model"]
-    
-    url = f"{GOOGLE_BASE_URL}/models/{model}:generateContent?key={api_key}"
-    
-    payload = {
-        "contents": [{
-            "parts": [{"text": f"{system_prompt}\n\n{prompt}"}]
-        }],
-        "generationConfig": {
-            "temperature": 0.8,
-            "maxOutputTokens": 8192
-        }
-    }
-    
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, json=payload, timeout=60.0)
-        response.raise_for_status()
-        data = response.json()
-        
-        if "candidates" in data and len(data["candidates"]) > 0:
-            text = data["candidates"][0]["content"]["parts"][0]["text"]
-            return text
-        else:
-            raise Exception("No response from Gemini API")
-
-
-async def generate_with_openai(prompt: str, system_prompt: str = "") -> str:
-    """Generate content using OpenAI API."""
-    config = get_provider_config()
-    api_key = config["api_key"]
-    model = config["model"]
-    
-    url = f"{OPENAI_BASE_URL}/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-    
-    payload = {
-        "model": model,
-        "messages": [
-            {"role": "system", "content": system_prompt} if system_prompt else {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.8
-    }
-    
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, json=payload, headers=headers, timeout=60.0)
-        response.raise_for_status()
-        data = response.json()
-        return data["choices"][0]["message"]["content"]
-
-
-async def generate_with_anthropic(prompt: str, system_prompt: str = "") -> str:
-    """Generate content using Anthropic Claude API."""
-    config = get_provider_config()
-    api_key = config["api_key"]
-    model = config["model"]
-    
-    url = f"{ANTHROPIC_BASE_URL}/messages"
-    headers = {
-        "x-api-key": api_key,
-        "anthropic-version": "2023-06-01",
-        "Content-Type": "application/json"
-    }
-    
-    payload = {
-        "model": model,
-        "max_tokens": 4096,
-        "system": system_prompt,
-        "messages": [{"role": "user", "content": prompt}]
-    }
-    
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, json=payload, headers=headers, timeout=60.0)
-        response.raise_for_status()
         data = response.json()
         return data["content"][0]["text"]
 
+async def call_openai(prompt: str, system_prompt: str, max_tokens: int = 2000) -> str:
+    """Make API call to OpenAI using httpx"""
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        response = await client.post(
+            f"{OPENAI_BASE_URL}/chat/completions",
+            headers={
+                "Authorization": f"Bearer {OPENAI_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "gpt-4o-mini",
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": 0.8,
+                "max_tokens": max_tokens
+            }
+        )
 
-async def generate_content(prompt: str, system_prompt: str = "") -> str:
-    """Generate content using the configured AI provider."""
-    config = get_provider_config()
-    
-    if config["name"] == "google":
-        return await generate_with_google(prompt, system_prompt)
-    elif config["name"] == "openai":
-        return await generate_with_openai(prompt, system_prompt)
-    elif config["name"] == "anthropic":
-        return await generate_with_anthropic(prompt, system_prompt)
+        if response.status_code != 200:
+            raise Exception(f"OpenAI API error: {response.text}")
+
+        data = response.json()
+        return data["choices"][0]["message"]["content"]
+
+async def call_ai(prompt: str, system_prompt: str, max_tokens: int = 2000) -> str:
+    """Call AI provider based on configuration"""
+    if USE_ANTHROPIC:
+        return await call_anthropic(prompt, system_prompt, max_tokens)
     else:
-        raise ValueError(f"Unsupported provider: {config['name']}")
+        return await call_openai(prompt, system_prompt, max_tokens)
 
-
-# API Endpoints
 @app.get("/api/health", response_model=HealthResponse)
 async def health_check():
-    """Health check endpoint."""
+    """Returns the health status of the API"""
     return HealthResponse(
         status="healthy",
-        timestamp=datetime.utcnow(),
-        provider=AI_PROVIDER
+        timestamp=datetime.now(timezone.utc),
+        provider=ai_provider
     )
-
 
 @app.post("/api/generate-styles", response_model=StylesResponse)
 async def generate_styles(request: StyleRequest):
-    """Generate 3 creative Metaverse design styles from a prompt."""
+    """Generate creative Metaverse design directions based on a prompt."""
+    if not request.prompt:
+        raise HTTPException(status_code=400, detail="Prompt is required")
+
+    system_prompt = """You are a creative Metaverse design expert.
+Generate 3 distinct, creative style directions for metaverse UI/UX designs.
+Each style should have a name and a brief description (1-2 sentences).
+Return ONLY a JSON array of 3 strings in this format:
+["Style Name: Description", "Style Name: Description", "Style Name: Description"]"""
+
     try:
-        system_prompt = """You are a Metaverse design expert. Generate exactly 3 creative, distinct design style directions.
-Respond ONLY with a JSON array of 3 style descriptions. Example format:
-["Cyberpunk Neon with dark futuristic glowing accents", "Minimal Zen with clean lines and natural elements", "Retro Futurism blending 80s aesthetics with modern tech"]"""
+        content = await call_ai(
+            f"Generate 3 creative design styles for: {request.prompt}",
+            system_prompt,
+            max_tokens=300
+        )
 
-        user_prompt = f"Generate 3 Metaverse design styles for: {request.prompt}"
-        
-        response = await generate_content(user_prompt, system_prompt)
-        
-        # Try to extract JSON array from response
-        try:
-            # Find JSON array in the text
-            match = re.search(r'\[.*\]', response, re.DOTALL)
-            if match:
-                styles = json.loads(match.group())
-            else:
-                # Fallback: split by newlines or commas
-                styles = [s.strip().strip('"- ') for s in response.replace('\n', ',').split(',') if s.strip()]
-            
-            # Ensure we have exactly 3 styles
-            styles = styles[:3] if len(styles) >= 3 else styles + ["Default Style"] * (3 - len(styles))
-            
-            return StylesResponse(styles=styles)
-        except json.JSONDecodeError:
-            # Fallback if JSON parsing fails
-            return StylesResponse(styles=[
-                "Cyberpunk Neon Style",
-                "Minimal Zen Style", 
-                "Futuristic Abstract Style"
-            ])
-            
+        # Extract JSON array from response
+        match = re.search(r'\[.*\]', content, re.DOTALL)
+        if match:
+            styles = json.loads(match.group())
+        else:
+            styles = [s.strip() for s in content.split('\n') if s.strip()][:3]
+
+        return StylesResponse(styles=styles)
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate styles: {str(e)}")
-
+        raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
 
 @app.post("/api/generate-artifact", response_model=ArtifactResponse)
 async def generate_artifact(request: ArtifactRequest):
-    """Generate a Metaverse UI widget based on prompt and style."""
+    """Generate a Metaverse UI widget (HTML/CSS) based on prompt and style."""
+    if not request.prompt or not request.styleInstruction:
+        raise HTTPException(
+            status_code=400,
+            detail="Both prompt and styleInstruction are required"
+        )
+
+    system_prompt = """You are a expert UI/UX designer for the Metaverse.
+Generate a complete, self-contained HTML/CSS artifact.
+- Use modern CSS (flexbox, grid, gradients, glassmorphism)
+- Include inline CSS and JS if needed
+- Make it visually stunning and futuristic
+- Return ONLY the raw HTML code, no explanations or markdown code blocks"""
+
     try:
-        system_prompt = """You are an expert Metaverse UI designer and developer. Create complete, self-contained HTML/CSS widgets.
-The code should be fully self-contained in a single HTML file with embedded CSS. Use modern CSS (flexbox/grid, gradients, animations).
-Include inline SVG icons or emojis. Make it responsive and visually impressive with dark theme suitable for Metaverse environments.
-Respond ONLY with the raw HTML code, no markdown formatting, no explanations."""
+        html = await call_ai(
+            f"""Create a Metaverse UI widget for: {request.prompt}
 
-        user_prompt = f"""Create a Metaverse UI widget:
-Design Request: {request.prompt}
-Style Direction: {request.styleInstruction}
+Style direction: {request.styleInstruction}
 
-Generate the complete HTML/CSS code:"""
+Generate beautiful, futuristic HTML/CSS that matches this style.""",
+            system_prompt,
+            max_tokens=2000
+        )
 
-        response = await generate_content(user_prompt, system_prompt)
-        
-        # Clean up markdown code blocks if present
-        html = response.replace("```html", "").replace("```", "").strip()
-        
+        # Clean up any markdown formatting
+        html = html.strip()
+        if html.startswith("```html"):
+            html = html[7:]
+        elif html.startswith("```"):
+            html = html[3:]
+        if html.endswith("```"):
+            html = html[:-3]
+        html = html.strip()
+
         return ArtifactResponse(html=html, status="success")
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate artifact: {str(e)}")
-
-
-@app.get("/")
-async def root():
-    """Root endpoint."""
-    return {
-        "message": "HomeBase3 API",
-        "version": "1.0.0",
-        "docs": "/docs",
-        "health": "/api/health",
-        "provider": AI_PROVIDER
-    }
-
+        raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
