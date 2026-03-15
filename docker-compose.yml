@@ -6,9 +6,12 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "3001:3001"
+      - "3001:8000"
     environment:
+      - AI_PROVIDER=${AI_PROVIDER:-google}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
       - ./backend:/app
       - /app/node_modules
